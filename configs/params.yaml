@@ -20,8 +20,8 @@ train_input:
     shuffle_buffer_size : 10000
     augment_data: True
     dataset_path: 'data' # Place to store data
-    train_batch_size: 2
-    eval_batch_size: 5
+    train_batch_size: 256
+    eval_batch_size: 256
     num_parallel_calls: 0   # 0 means AUTOTUNE
     # num_parallel_reads: 16
     train_test_split: 0.79
@@ -85,8 +85,8 @@ optimizer:
 
 runconfig:
     epochs: 100
-    save_summary_epoch: 1
-    save_checkpoints_epoch: 1
+    save_summary_epoch: 2
+    save_checkpoints_epoch: 2
     keep_checkpoint_max: 2
     model_dir: 'model_dir'
     cs_ip:
@@ -95,6 +95,6 @@ runconfig:
     eval_steps: 100
     valid: True  
     valid_only: False
-    valid_every: 1
+    valid_every: 5
     model_path: "checkpoints"
     save_as_new: True
