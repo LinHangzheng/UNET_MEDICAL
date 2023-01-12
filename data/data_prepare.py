@@ -18,7 +18,7 @@ def data_split( IR, label, train_test_split):
     return train_IR, test_IR, train_label, test_label
 
 if __name__ == "__main__":
-    data_dir = '/home/hangzheng/research/HOLLI/Unet_medical/data'
+    data_dir = './'
     IR = np.array(h5py.File(os.path.join(data_dir,'IR.mat'), 'r')['X'])
     IR = normolize(IR)
     label = np.array(h5py.File(os.path.join(data_dir,'Class.mat'), 'r')['CL'])
