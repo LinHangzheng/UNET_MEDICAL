@@ -48,7 +48,7 @@ class Validator(object):
 
     def validate(self, epoch):
         """Geometric validation; sample surface points."""
-
+        num_classes = self.params["train_input"]["num_classes"]
         val_dict = {}
         val_dict['ACU'] = []
         
@@ -58,8 +58,11 @@ class Validator(object):
             labels = data[1].to(self.device)
 
             pred = self.net(images)
-            val_dict['ACU'] += [float(compute_acu(pred, labels, self.params["train_input"]["num_classes"]))]
-        val_dict['ACU'] = np.mean(val_dict['ACU'])
+            val_dict['ACU'] += [compute_acu(pred, labels, num_classes)]
+        val_dict['ACU'] = np.mean(val_dict['ACU'],axis=0)
+        for i in range(1, num_classes+1):
+            val_dict[f'ACU_{i}'] = val_dict['ACU'][i-1]
+        val_dict['ACU'] = val_dict['ACU'][-1]
         return val_dict
 
     
