@@ -134,12 +134,12 @@ class IRDataset(Dataset):
         self.IR_patches = patch_IR
         self.label_patches = patch_label.astype(int)
         
-                # from matplotlib import pyplot as plt
-                # plt.imshow(patch_IR[0], interpolation='nearest')
-                # plt.show()
-                
-                # plt.imshow(path_label, interpolation='nearest')
-                # plt.show()
+        from matplotlib import pyplot as plt
+        plt.imshow(patch_IR[0][0], interpolation='nearest')
+        plt.show()
+        
+        plt.imshow(patch_label[0], interpolation='nearest')
+        plt.show()
 
 
     def data_split(self, IR, label, train_test_split):
