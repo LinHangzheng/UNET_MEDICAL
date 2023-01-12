@@ -31,7 +31,7 @@ train_input:
     patch_step: 320
     vit_patch_size: 16
     dataset: "IR_dataset"
-    IR_channel_level: 2 # up to 19 
+    IR_channel_level: 5 # up to 19 
     steps_per_epoch: 20
     large_patch_size: 200
     patch_h_dim: 12
