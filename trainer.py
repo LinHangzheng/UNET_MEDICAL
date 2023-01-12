@@ -11,6 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
 from utils import PerfTimer, Validator
 from input import IRDataset
+import wandb
 class Trainer(object):
     """
     Base class for the trainer.
@@ -94,7 +95,7 @@ class Trainer(object):
         self.log_dict = {}
 
         # Initialize
-        
+        self.set_wandb()
         self.set_dataset()
         self.timer.check('set_dataset')
         self.set_network()
@@ -110,7 +111,17 @@ class Trainer(object):
     #######################
     # __init__ helper functions
     #######################
-
+    def set_wandb(self):
+        wandb.init(project="test", entity="color-recon")#,mode="disabled"
+        wandb.config.update = {
+            "learning_rate": self.lr,
+            "epochs": self.epochs,
+            "batch_size": self.batch,
+            "image_size":self.image_size,
+            "IR_threshold": self.IR_threshold,
+            "steps_per_epoch": self.steps_per_epoch
+            }
+        
     def set_dataset(self):
         """
         Override this function if using a custom dataset.  
@@ -273,7 +284,7 @@ class Trainer(object):
         log_text = 'EPOCH {}/{}'.format(epoch+1, self.epochs)
         self.log_dict['total_loss'] /= self.log_dict['total_iter_count'] + 1e-6
         log_text += ' | total loss: {:>.3E}'.format(self.log_dict['total_loss'])
-
+        wandb.log({"total loss": self.log_dict['total_loss']})
         log.info(log_text)
 
         # Log losses
@@ -359,4 +370,5 @@ class Trainer(object):
         for k, v in val_dict.items():
             self.writer.add_scalar(f'Validation/{k}', v, epoch)
             log_text += ' | {}: {:.2f}'.format(k, v)
+            wandb.log({k: v})
         log.info(log_text)
