@@ -26,8 +26,8 @@ train_input:
     # num_parallel_reads: 16
     train_test_split: 0.79
     num_classes: 7
-    IR_threshould: 0.075
-    image_size: 32
+    IR_threshould: 0.18
+    image_size: 128
     patch_step: 320
     vit_patch_size: 16
     dataset: "IR_dataset"
