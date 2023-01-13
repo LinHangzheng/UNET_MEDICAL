@@ -23,7 +23,7 @@ if __name__ == "__main__":
     log.info(f'Parameters: \n{args}')
     mp.spawn(
         main,
-        args=(4,),
-        nprocs=4
+        args=(1,),
+        nprocs=1
     )
 
