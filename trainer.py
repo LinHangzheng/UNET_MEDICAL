@@ -59,7 +59,7 @@ class Trainer(object):
         self.IR_threshold = params["train_input"]["IR_threshould"]
         self.image_size = params["train_input"]["image_size"]
         self.seed = params["train_input"].get("seed", None)
-        self.batch = params["train_input"]["image_size"]
+        self.batch = params["train_input"]["train_batch_size"]
         self.train_test_split = params["train_input"]["train_test_split"]
         self.steps_per_epoch = params["train_input"]["steps_per_epoch"]
         self.large_patch_size = params["train_input"]["large_patch_size"]
