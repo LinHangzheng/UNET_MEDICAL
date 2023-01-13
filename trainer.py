@@ -85,7 +85,7 @@ class Trainer(object):
         self.rank = rank
         # Set device to use
         self.use_cuda = torch.cuda.is_available()
-        self.device = torch.device(f'cuda:0' if self.use_cuda else 'cpu')
+        self.device = torch.device(self.rank if self.use_cuda else 'cpu')
         device_name = torch.cuda.get_device_name(device=self.device)
         log.info(f'Using {device_name} with CUDA v{torch.version.cuda}')
 
@@ -201,7 +201,7 @@ class Trainer(object):
         Override this function to use custom validators.
         """
         if self.valid is not None:
-            self.validator = Validator(self.params, self.device, self.net)
+            self.validator = Validator(self.params, self.rank, self.net)
             
     #######################
     # pre_epoch
@@ -240,8 +240,8 @@ class Trainer(object):
 
             # Map to device
 
-            images = data[0].to(self.device)
-            labels = data[1].to(self.device)
+            images = data[0].to(self.rank)
+            labels = data[1].to(self.rank)
 
             # Prepare for inference
             batch_size = images.shape[0]
