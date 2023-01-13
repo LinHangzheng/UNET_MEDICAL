@@ -70,7 +70,7 @@ class Trainer(object):
         self.logs = params["model"]["logs"]
         self.optimizer = params["optimizer"]["optimizer_type"]
         self.lr = params["optimizer"]["lr"]
-        self.weight_decay_rate = params["optimizer"]["weight_decay_rate"]
+        self.weight_decay_rate = float(params["optimizer"]["weight_decay_rate"])
         self.valid = params["runconfig"]["valid"]
         self.valid_only = params["runconfig"]["valid_only"]
         self.epochs = params["runconfig"]["epochs"]
@@ -113,7 +113,7 @@ class Trainer(object):
     # __init__ helper functions
     #######################
     def set_wandb(self):
-        wandb.init(project="test", entity="color-recon",mode="disabled")#,mode="disabled"
+        wandb.init(project="test", entity="color-recon")#,mode="disabled"
         wandb.config.update = {
             "learning_rate": self.lr,
             "epochs": self.epochs,
@@ -152,7 +152,7 @@ class Trainer(object):
             self.net.load_state_dict(torch.load(self.args.pretrained))
 
         self.net.to(self.device)
-
+        self.net = torch.nn.DataParallel(self.net, device_ids=[0,1,2,3])
         log.info("Total number of parameters: {}".format(sum(p.numel() for p in self.net.parameters())))
 
     def set_optimizer(self):
@@ -162,7 +162,7 @@ class Trainer(object):
 
         # Set geometry optimizer
         if self.optimizer == 'adam':
-            self.optimizer = optim.Adam(self.net.parameters(), lr=self.lr)
+            self.optimizer = optim.Adam(self.net.parameters(), lr=self.lr, weight_decay=self.weight_decay_rate)
         elif self.optimizer == 'sgd':
             self.optimizer = optim.SGD(self.net.parameters(), lr=self.lr, momentum=0.8)
         else:
@@ -238,7 +238,7 @@ class Trainer(object):
             preds = torch.reshape(preds,[-1,self.num_classes])
             labels = torch.reshape(labels, [-1])
             loss = self.loss(preds,labels)
-
+            
             # Update logs
             self.log_dict['cross_entropy_loss'] += loss.item()
             self.log_dict['total_loss'] += loss.item()
@@ -247,10 +247,9 @@ class Trainer(object):
             loss /= batch_size
 
             # Backpropagate
-            loss.backward()
+            loss.mean().backward()
             self.optimizer.step()
-            self.optimizer.param_groups[0]['weight_decay'] = 0.
-    
+       
     #######################
     # post_epoch
     #######################
@@ -271,8 +270,6 @@ class Trainer(object):
         if epoch % self.save_checkpoints_epoch == 0:
             self.save_model(epoch)
             
-        self.optimizer.param_groups[0]['weight_decay'] = self.weight_decay_rate
-
         self.timer.check('post_epoch done')
     
     #######################

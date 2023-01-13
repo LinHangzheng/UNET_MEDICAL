@@ -27,7 +27,7 @@ train_input:
     train_test_split: 0.79
     num_classes: 7
     IR_threshould: 0.18
-    image_size: 32 #128
+    image_size: 96 #128
     patch_step: 320
     vit_patch_size: 16
     dataset: "IR_dataset"
@@ -66,7 +66,7 @@ model:
 optimizer:
     lr: 0.0001
     optimizer_type: 'adam' # {'sgd', 'momentum', 'adam', 'adamw'}
-    weight_decay_rate: 0.05
+    weight_decay_rate: 5e-5
     epsilon: 1e-6
     max_gradient_norm: 1.0
     disable_lr_steps_reset: True
