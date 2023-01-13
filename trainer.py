@@ -174,7 +174,7 @@ class Trainer(object):
                 for k, v in state_dict.items():
                     name = k[7:] # remove 'module.' of DataParallel/DistributedDataParallel
                     new_state_dict[name] = v
-                self.net..load_state_dict(new_state_dict)
+                self.net.load_state_dict(new_state_dict)
                 
         self.net.to(self.rank)
         self.net = DDP(self.net, device_ids=[self.rank], output_device=self.rank, find_unused_parameters=False)
