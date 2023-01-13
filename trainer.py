@@ -165,7 +165,7 @@ class Trainer(object):
             self.net.load_state_dict(torch.load(self.args.pretrained))
 
         self.net.to(self.rank)
-        self.net = DDP(self.net, device_ids=[self.rank], output_device=self.rank, find_unused_parameters=True)
+        self.net = DDP(self.net, device_ids=[self.rank], output_device=self.rank, find_unused_parameters=False)
         log.info("Total number of parameters: {}".format(sum(p.numel() for p in self.net.parameters())))
 
     def set_optimizer(self):
