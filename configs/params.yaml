@@ -20,7 +20,7 @@ train_input:
     shuffle_buffer_size : 10000
     augment_data: True
     dataset_path: 'data' # Place to store data
-    train_batch_size: 512
+    train_batch_size: 32
     eval_batch_size: 256
     num_parallel_calls: 0   # 0 means AUTOTUNE
     # num_parallel_reads: 16
@@ -32,7 +32,7 @@ train_input:
     vit_patch_size: 16
     dataset: "IR_dataset"
     IR_channel_level: 5 # up to 19 
-    steps_per_epoch: 500
+    steps_per_epoch: 50
     large_patch_size: 200
     patch_h_dim: 12 #12
     patch_w_dim: 12 #12
@@ -83,7 +83,7 @@ optimizer:
 
 
 runconfig:
-    epochs: 1000
+    epochs: 10000
     save_summary_epoch: 10
     save_checkpoints_epoch: 10
     keep_checkpoint_max: 2
