@@ -122,7 +122,7 @@ class Trainer(object):
         dist.init_process_group("nccl", rank=rank, world_size=world_size)
         
     def set_wandb(self):
-        wandb.init(project="test", entity="color-recon")#,mode="disabled"
+        wandb.init(project="test", entity="color-recon",mode="disabled")#,mode="disabled"
         wandb.config.update = {
             "learning_rate": self.lr,
             "epochs": self.epochs,
