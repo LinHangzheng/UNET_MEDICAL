@@ -114,7 +114,7 @@ class Trainer(object):
         self.timer.check('set_logger')
         self.set_validator()
         self.timer.check('set_validator')
-        self.train()
+
         
     #######################
     # __init__ helper functions
@@ -248,7 +248,7 @@ class Trainer(object):
 
             # Prepare for inference
             batch_size = images.shape[0]
-            self.net.zero_grad()
+            self.optimizer.zero_grad()
 
             # Calculate loss
             preds = self.net(images)

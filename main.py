@@ -8,15 +8,20 @@ log.basicConfig(format='[%(asctime)s] [INFO] %(message)s',
                 datefmt='%d/%m %H:%M:%S',
                 level=log.INFO)
 
-
+with open('configs/params.yaml', 'r') as file:
+    args = yaml.safe_load(file)
+        
+def main(rank, world_size):
+    trainer = Trainer(rank, args)
+    trainer.train()
+    
 if __name__ == "__main__":
     """Main program."""
-    with open('configs/params.yaml', 'r') as file:
-        args = yaml.safe_load(file)
+    
     log.info(f'Parameters: \n{args}')
     mp.spawn(
-        Trainer,
-        args=(*args),
+        main,
+        args=(4,),
         nprocs=4
     )
 
