@@ -70,6 +70,7 @@ class Trainer(object):
         self.logs = params["model"]["logs"]
         self.optimizer = params["optimizer"]["optimizer_type"]
         self.lr = params["optimizer"]["lr"]
+        self.weight_decay_rate = params["optimizer"]["weight_decay_rate"]
         self.valid = params["runconfig"]["valid"]
         self.valid_only = params["runconfig"]["valid_only"]
         self.epochs = params["runconfig"]["epochs"]
@@ -112,7 +113,7 @@ class Trainer(object):
     # __init__ helper functions
     #######################
     def set_wandb(self):
-        wandb.init(project="test", entity="color-recon")#,mode="disabled"
+        wandb.init(project="test", entity="color-recon",mode="disabled")#,mode="disabled"
         wandb.config.update = {
             "learning_rate": self.lr,
             "epochs": self.epochs,
@@ -248,6 +249,7 @@ class Trainer(object):
             # Backpropagate
             loss.backward()
             self.optimizer.step()
+            self.optimizer.param_groups[0]['weight_decay'] = 0.
     
     #######################
     # post_epoch
@@ -268,6 +270,8 @@ class Trainer(object):
         self.log_tb(epoch)
         if epoch % self.save_checkpoints_epoch == 0:
             self.save_model(epoch)
+            
+        self.optimizer.param_groups[0]['weight_decay'] = self.weight_decay_rate
 
         self.timer.check('post_epoch done')
     
