@@ -369,9 +369,9 @@ class Trainer(object):
 
             self.post_epoch(epoch)
 
-            if self.rank ==0 and self.valid is not None and epoch % self.valid_every == 0:
-                self.validate(epoch)
-                self.timer.check('validate')
+            # if self.rank ==0 and self.valid is not None and epoch % self.valid_every == 0:
+            #     self.validate(epoch)
+            #     self.timer.check('validate')
                 
         self.cleanup()
         self.writer.close()
