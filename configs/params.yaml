@@ -40,7 +40,8 @@ train_input:
     test_patch_step: 20  #5
 
 model:
-    pretrained: "checkpoints/20230112-235816-990.pth"   
+    pretrained: "checkpoints/20230112-235816-990.pth" 
+    pretrained_from_DDP: True
     classes_num: 7
     hidden_size: 768
     heads_num: 12
