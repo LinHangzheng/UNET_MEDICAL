@@ -32,13 +32,12 @@ train_input:
     vit_patch_size: 16
     dataset: "IR_dataset"
     IR_channel_level: 5 # up to 19 
-    steps_per_epoch: 100
+    steps_per_epoch: 1000
     large_patch_size: 200
     patch_h_dim: 12 #12
     patch_w_dim: 12 #12
     train_patch_step: 20 #
     test_patch_step: 20  #5
-    epoch: 250
 
 model:
     pretrained: False 
@@ -65,9 +64,9 @@ model:
     
 
 optimizer:
-    lr: 0.001
+    lr: 0.0001
     optimizer_type: 'adam' # {'sgd', 'momentum', 'adam', 'adamw'}
-    weight_decay_rate: 0.01
+    weight_decay_rate: 0.05
     epsilon: 1e-6
     max_gradient_norm: 1.0
     disable_lr_steps_reset: True
@@ -84,7 +83,7 @@ optimizer:
 
 
 runconfig:
-    epochs: 100
+    epochs: 1000
     save_summary_epoch: 10
     save_checkpoints_epoch: 10
     keep_checkpoint_max: 2

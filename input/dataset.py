@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from sklearn.feature_extraction import image
 from patchify import patchify
 import numpy as np
-
+# from PIL import Image
 class IRDataset(Dataset):
     def __init__(self, 
         params=None, 
@@ -106,6 +106,8 @@ class IRDataset(Dataset):
                 
                 self.IR_patches.append(patch_IR)
                 self.label_patches.append(patch_label)
+                # img = Image.fromarray(np.array(patch_label/6*255,dtype=np.uint8))
+                # img.save(f"{i}_{j}.jpg")
 
     def test_data_preparation(self, IR, label, patch_size, threshold, patch_step=5):
         H, W = IR.shape[0], IR.shape[1]
