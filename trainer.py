@@ -44,7 +44,7 @@ class Trainer(object):
     # __init__
     #######################
     
-    def __init__(self, params, rank):
+    def __init__(self, rank, params):
         """Constructor.
         
         Args:

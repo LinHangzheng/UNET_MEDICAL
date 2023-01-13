@@ -16,7 +16,7 @@ if __name__ == "__main__":
     log.info(f'Parameters: \n{args}')
     mp.spawn(
         Trainer,
-        args=(args,4),
+        args=(args),
         nprocs=4
     )
 
