@@ -80,6 +80,7 @@ class Trainer(object):
         self.valid_every = params["runconfig"]["valid_every"]
         self.save_as_new = params["runconfig"]["save_as_new"]
         self.world_size = params["runconfig"]["world_size"]
+        self.mode = params["runconfig"]["mode"]
         self.timer = PerfTimer(activate=False)
         self.timer.reset()
         self.rank = rank
@@ -142,7 +143,7 @@ class Trainer(object):
         
         The code uses the mesh dataset by default, unless --analytic is specified in CLI.
         """
-        self.train_dataset = IRDataset(self.params, "train")
+        self.train_dataset = IRDataset(self.params, self.mode)
         sampler = DistributedSampler(self.train_dataset,
                                     num_replicas=self.world_size, 
                                     rank=self.rank, 
@@ -163,7 +164,7 @@ class Trainer(object):
         self.net = GeneratorUNet(in_channels=self.IR_channel_level, out_channels=self.num_classes)
 
         if self.pretrained:
-            self.net.load_state_dict(torch.load(self.args.pretrained))
+            self.net.load_state_dict(torch.load(self.pretrained))
 
         self.net.to(self.rank)
         self.net = DDP(self.net, device_ids=[self.rank], output_device=self.rank, find_unused_parameters=False)
@@ -334,12 +335,6 @@ class Trainer(object):
             model_fname = os.path.join(self.model_path, f'{self.log_fname}_latents.pth')
             torch.save(self.latents.state_dict(), model_fname)
         
-    def resample(self, epoch):
-        """
-        Override this function to change resampling.
-        """
-        self.train_dataset.resample()
-
     #######################
     # train
     #######################
