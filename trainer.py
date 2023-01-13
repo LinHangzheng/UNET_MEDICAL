@@ -1,9 +1,6 @@
 from datetime import datetime
 import os
 import logging as log
-import multiprocessing
-
-
 import torch
 import torch.optim as optim
 from model import GeneratorUNet
@@ -53,7 +50,7 @@ class Trainer(object):
             model_name (str): model nametag
         """
         #torch.multiprocessing.set_start_method('spawn')
-        multiprocessing.set_start_method('spawn')
+        # multiprocessing.set_start_method('spawn')
 
         self.params = params 
         self.data_dir = params["train_input"]["dataset_path"]
