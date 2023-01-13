@@ -118,9 +118,10 @@ class Trainer(object):
     # __init__ helper functions
     #######################
     def set_process(self,rank, world_size):
-        os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12345'
-        dist.init_process_group("nccl", rank=rank, world_size=world_size)
+        if world_size > 1:
+            os.environ['MASTER_ADDR'] = 'localhost'
+            os.environ['MASTER_PORT'] = '12345'
+            dist.init_process_group("nccl", rank=rank, world_size=world_size)
         
     def set_wandb(self):
         if self.rank ==0:
