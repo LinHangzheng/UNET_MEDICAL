@@ -150,7 +150,7 @@ class Trainer(object):
         log.info("Dataset Size: {}".format(len(self.train_dataset)))
         
         self.train_data_loader = DataLoader(self.train_dataset, batch_size=self.batch, 
-                                            shuffle=True, pin_memory=True, num_workers=0,sampler=sampler)
+                                            shuffle=False, pin_memory=True, num_workers=0,sampler=sampler)
         self.timer.check('create_dataloader')
         log.info("Loaded mesh dataset")
             
