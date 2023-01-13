@@ -122,15 +122,16 @@ class Trainer(object):
         dist.init_process_group("nccl", rank=rank, world_size=world_size)
         
     def set_wandb(self):
-        wandb.init(project="test", entity="color-recon",mode="disabled")#,mode="disabled"
-        wandb.config.update = {
-            "learning_rate": self.lr,
-            "epochs": self.epochs,
-            "batch_size": self.batch,
-            "image_size":self.image_size,
-            "IR_threshold": self.IR_threshold,
-            "steps_per_epoch": self.steps_per_epoch
-            }
+        if self.rank ==0:
+            wandb.init(project="test", entity="color-recon")#,mode="disabled"
+            wandb.config.update = {
+                "learning_rate": self.lr,
+                "epochs": self.epochs,
+                "batch_size": self.batch,
+                "image_size":self.image_size,
+                "IR_threshold": self.IR_threshold,
+                "steps_per_epoch": self.steps_per_epoch
+                }
         
     def set_dataset(self):
         """
@@ -200,7 +201,7 @@ class Trainer(object):
         """
         Override this function to use custom validators.
         """
-        if self.valid is not None:
+        if self.valid is not None and self.rank ==0:
             self.validator = Validator(self.params, self.rank, self.net)
             
     #######################
@@ -280,12 +281,13 @@ class Trainer(object):
         in the derived method.
         """
         self.net.eval()
+        
+        if self.rank == 0:
+            self.log_tb(epoch)
+            if epoch % self.save_checkpoints_epoch == 0:
+                self.save_model(epoch)
             
-        self.log_tb(epoch)
-        if epoch % self.save_checkpoints_epoch == 0:
-            self.save_model(epoch)
-            
-        self.timer.check('post_epoch done')
+            self.timer.check('post_epoch done')
     
     #######################
     # post_epoch helper functions
@@ -367,7 +369,7 @@ class Trainer(object):
 
             self.post_epoch(epoch)
 
-            if self.valid is not None and epoch % self.valid_every == 0:
+            if self.rank ==0 and self.valid is not None and epoch % self.valid_every == 0:
                 self.validate(epoch)
                 self.timer.check('validate')
                 
