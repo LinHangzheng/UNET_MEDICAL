@@ -98,7 +98,7 @@ class Trainer(object):
         self.log_dict = {}
 
         # Initialize
-        self.set_process()
+        self.set_process(self.rank, self.world_size)
         self.set_wandb()
         self.set_dataset()
         self.timer.check('set_dataset')
