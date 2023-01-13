@@ -1,6 +1,6 @@
 import yaml
 import logging as log
-
+import torch.multiprocessing as mp
 from trainer import Trainer
 
 # Set logger display format
@@ -14,5 +14,9 @@ if __name__ == "__main__":
     with open('configs/params.yaml', 'r') as file:
         args = yaml.safe_load(file)
     log.info(f'Parameters: \n{args}')
-    model = Trainer(args)
-    model.train()
+    mp.spawn(
+        Trainer,
+        args=(args,4),
+        nprocs=4
+    )
+

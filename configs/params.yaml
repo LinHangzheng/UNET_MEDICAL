@@ -97,3 +97,4 @@ runconfig:
     valid_every: 4
     model_path: "checkpoints"
     save_as_new: True
+    world_size: 4

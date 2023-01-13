@@ -9,8 +9,12 @@ import torch.optim as optim
 from model import GeneratorUNet
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
+from torch.utils.data.distributed import DistributedSampler
+from torch.nn.parallel import DistributedDataParallel as DDP
 from utils import PerfTimer, Validator
 from input import IRDataset
+import torch.distributed as dist
+
 import wandb
 class Trainer(object):
     """
@@ -40,7 +44,7 @@ class Trainer(object):
     # __init__
     #######################
     
-    def __init__(self, params):
+    def __init__(self, params, rank):
         """Constructor.
         
         Args:
@@ -78,9 +82,10 @@ class Trainer(object):
         self.model_path = params["runconfig"]["model_path"]
         self.valid_every = params["runconfig"]["valid_every"]
         self.save_as_new = params["runconfig"]["save_as_new"]
+        self.world_size = params["runconfig"]["world_size"]
         self.timer = PerfTimer(activate=False)
         self.timer.reset()
-        
+        self.rank = rank
         # Set device to use
         self.use_cuda = torch.cuda.is_available()
         self.device = torch.device(f'cuda:0' if self.use_cuda else 'cpu')
@@ -96,6 +101,7 @@ class Trainer(object):
         self.log_dict = {}
 
         # Initialize
+        self.set_process()
         self.set_wandb()
         self.set_dataset()
         self.timer.check('set_dataset')
@@ -108,10 +114,16 @@ class Trainer(object):
         self.timer.check('set_logger')
         self.set_validator()
         self.timer.check('set_validator')
+        self.train()
         
     #######################
     # __init__ helper functions
     #######################
+    def set_process(self,rank, world_size):
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '12355'
+        dist.init_process_group("nccl", rank=rank, world_size=world_size)
+        
     def set_wandb(self):
         wandb.init(project="test", entity="color-recon")#,mode="disabled"
         wandb.config.update = {
@@ -133,11 +145,15 @@ class Trainer(object):
         The code uses the mesh dataset by default, unless --analytic is specified in CLI.
         """
         self.train_dataset = IRDataset(self.params, "train")
-
+        sampler = DistributedSampler(self.train_dataset,
+                                    num_replicas=self.world_size, 
+                                    rank=self.rank, 
+                                    shuffle=False, 
+                                    drop_last=False)
         log.info("Dataset Size: {}".format(len(self.train_dataset)))
         
         self.train_data_loader = DataLoader(self.train_dataset, batch_size=self.batch, 
-                                            shuffle=True, pin_memory=True, num_workers=0)
+                                            shuffle=True, pin_memory=True, num_workers=0,sampler=sampler)
         self.timer.check('create_dataloader')
         log.info("Loaded mesh dataset")
             
@@ -151,8 +167,8 @@ class Trainer(object):
         if self.pretrained:
             self.net.load_state_dict(torch.load(self.args.pretrained))
 
-        self.net.to(self.device)
-        self.net = torch.nn.DataParallel(self.net, device_ids=[0,1,2,3])
+        self.net.to(self.rank)
+        self.net = DDP(self.net, device_ids=[self.rank], output_device=self.rank, find_unused_parameters=True)
         log.info("Total number of parameters: {}".format(sum(p.numel() for p in self.net.parameters())))
 
     def set_optimizer(self):
@@ -217,6 +233,8 @@ class Trainer(object):
         """
         Override this if there is a need to override the dataset iteration.
         """
+        # if we are using DistributedSampler, we have to tell it which epoch this is
+        self.train_data_loader.sampler.set_epoch(epoch) 
         for n_iter, data in enumerate(self.train_data_loader):
             """
             Override this function to change the per-iteration behaviour.
@@ -355,7 +373,8 @@ class Trainer(object):
             if self.valid is not None and epoch % self.valid_every == 0:
                 self.validate(epoch)
                 self.timer.check('validate')
-
+                
+        self.cleanup()
         self.writer.close()
     
     #######################
@@ -373,3 +392,6 @@ class Trainer(object):
             log_text += ' | {}: {:.2f}'.format(k, v)
             wandb.log({k: v})
         log.info(log_text)
+    
+    def cleanup(self):
+        dist.destroy_process_group()
