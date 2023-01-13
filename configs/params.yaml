@@ -32,7 +32,7 @@ train_input:
     vit_patch_size: 16
     dataset: "IR_dataset"
     IR_channel_level: 5 # up to 19 
-    steps_per_epoch: 20
+    steps_per_epoch: 100
     large_patch_size: 200
     patch_h_dim: 12 #12
     patch_w_dim: 12 #12
@@ -85,8 +85,8 @@ optimizer:
 
 runconfig:
     epochs: 100
-    save_summary_epoch: 2
-    save_checkpoints_epoch: 2
+    save_summary_epoch: 10
+    save_checkpoints_epoch: 10
     keep_checkpoint_max: 2
     model_dir: 'model_dir'
     cs_ip:
@@ -95,6 +95,6 @@ runconfig:
     eval_steps: 100
     valid: True  
     valid_only: False
-    valid_every: 5
+    valid_every: 4
     model_path: "checkpoints"
     save_as_new: True
