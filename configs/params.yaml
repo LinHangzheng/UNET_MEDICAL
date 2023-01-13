@@ -41,6 +41,7 @@ train_input:
 
 model:
     pretrained: False 
+    pretrained_from_DDP: True
     classes_num: 7
     hidden_size: 768
     heads_num: 12

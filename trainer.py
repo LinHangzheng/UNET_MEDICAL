@@ -11,7 +11,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from utils import PerfTimer, Validator
 from input import IRDataset
 import torch.distributed as dist
-
+from collections import OrderedDict
 import wandb
 class Trainer(object):
     """
@@ -68,6 +68,7 @@ class Trainer(object):
         self.train_patch_step = params["train_input"]["train_patch_step"]
         self.test_patch_step = params["train_input"]["test_patch_step"]
         self.pretrained = params['model']['pretrained']
+        self.pretrained_from_DDP = params["model"]["pretrained_from_DDP"]
         self.logs = params["model"]["logs"]
         self.optimizer = params["optimizer"]["optimizer_type"]
         self.lr = params["optimizer"]["lr"]
@@ -165,8 +166,16 @@ class Trainer(object):
         self.net = GeneratorUNet(in_channels=self.IR_channel_level, out_channels=self.num_classes)
 
         if self.pretrained:
-            self.net.load_state_dict(torch.load(self.pretrained))
-
+            state_dict = torch.load(self.pretrained)
+            if not self.pretrained_from_DDP:
+                self.net.load_state_dict(state_dict)
+            else:
+                new_state_dict = OrderedDict()
+                for k, v in state_dict.items():
+                    name = k[7:] # remove 'module.' of DataParallel/DistributedDataParallel
+                    new_state_dict[name] = v
+                self.net..load_state_dict(new_state_dict)
+                
         self.net.to(self.rank)
         self.net = DDP(self.net, device_ids=[self.rank], output_device=self.rank, find_unused_parameters=False)
         log.info("Total number of parameters: {}".format(sum(p.numel() for p in self.net.parameters())))
