@@ -119,10 +119,10 @@ class Trainer(object):
     # __init__ helper functions
     #######################
     def set_process(self,rank, world_size):
-        if world_size > 1:
-            os.environ['MASTER_ADDR'] = 'localhost'
-            os.environ['MASTER_PORT'] = '12345'
-            dist.init_process_group("nccl", rank=rank, world_size=world_size)
+        
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '12355'
+        dist.init_process_group("nccl", rank=rank, world_size=world_size)
         
     def set_wandb(self):
         if self.rank ==0:
@@ -175,7 +175,8 @@ class Trainer(object):
                     name = k[7:] # remove 'module.' of DataParallel/DistributedDataParallel
                     new_state_dict[name] = v
                 self.net.load_state_dict(new_state_dict)
-                
+            log.info("Pretrained model loaded")
+
         self.net.to(self.rank)
         self.net = DDP(self.net, device_ids=[self.rank], output_device=self.rank, find_unused_parameters=False)
         log.info("Total number of parameters: {}".format(sum(p.numel() for p in self.net.parameters())))
@@ -295,7 +296,7 @@ class Trainer(object):
         
         if self.rank == 0:
             self.log_tb(epoch)
-            if epoch % self.save_checkpoints_epoch == 0:
+            if (epoch+1) % self.save_checkpoints_epoch == 0:
                 self.save_model(epoch)
             
             self.timer.check('post_epoch done')
@@ -374,9 +375,9 @@ class Trainer(object):
 
             self.post_epoch(epoch)
 
-            # if self.rank ==0 and self.valid is not None and epoch % self.valid_every == 0:
-            #     self.validate(epoch)
-            #     self.timer.check('validate')
+            if self.rank ==0 and self.valid is not None and epoch % self.valid_every == 0:
+                 self.validate(epoch)
+                 self.timer.check('validate')
                 
         self.cleanup()
         self.writer.close()
