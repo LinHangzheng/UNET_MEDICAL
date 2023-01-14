@@ -13,17 +13,16 @@ log.basicConfig(format='[%(asctime)s] [INFO] %(message)s',
 with open('configs/params.yaml', 'r') as file:
     args = yaml.safe_load(file)
         
-def main(rank, world_size):
+def main(rank):
     trainer = Trainer(rank, args)
     trainer.train()
     
 if __name__ == "__main__":
     """Main program."""
-    
+    world_size = args["runconfig"]["world_size"]
     log.info(f'Parameters: \n{args}')
     mp.spawn(
         main,
-        args=(1,),
-        nprocs=1
+        nprocs=world_size
     )
 
