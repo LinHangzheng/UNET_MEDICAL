@@ -3,7 +3,7 @@ import os
 import logging as log
 import torch
 import torch.optim as optim
-from model import GeneratorUNet
+from model import *
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.distributed import DistributedSampler
@@ -58,6 +58,7 @@ class Trainer(object):
         self.num_classes = params["train_input"]["num_classes"]
         self.image_size = params["train_input"]["image_size"]
         
+        self.model_type = params['model']['model_type']
         self.pretrained = params['model']['pretrained']
         self.pretrained_from_DDP = params["model"]["pretrained_from_DDP"]
         self.logs = params["model"]["logs"]
@@ -66,7 +67,6 @@ class Trainer(object):
         self.lr = params["optimizer"]["lr"]
         self.weight_decay_rate = float(params["optimizer"]["weight_decay_rate"])
         
-        self.steps_per_epoch = params["runconfig"]["steps_per_epoch"]
         self.batch = params["runconfig"]["train_batch_size"]
         self.valid = params["runconfig"]["valid"]
         self.valid_only = params["runconfig"]["valid_only"]
@@ -128,7 +128,6 @@ class Trainer(object):
                 "epochs": self.epochs,
                 "batch_size": self.batch,
                 "image_size":self.image_size,
-                "steps_per_epoch": self.steps_per_epoch
                 }
         
     def set_dataset(self):
@@ -158,8 +157,11 @@ class Trainer(object):
         Override this function if using a custom network, that does not use the default args based
         initialization, or if you need a custom network initialization scheme.
         """
-        self.net = GeneratorUNet(in_channels=self.IR_channel_level, out_channels=self.num_classes)
-
+        if self.model_type == 'GeneratorUNet':
+            self.net = GeneratorUNet(in_channels=self.IR_channel_level, out_channels=self.num_classes)
+        elif self.model_type == 'UNet':
+            self.net = UNet(n_channels=self.IR_channel_level, n_classes=self.num_classes)
+        
         if self.pretrained:
             state_dict = torch.load(self.pretrained)
             if not self.pretrained_from_DDP:

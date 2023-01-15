@@ -1,2 +1,2 @@
-from .model import GeneratorUNet
-from .base_network import BaseNetwork
+from .unet_medical.model import GeneratorUNet
+from .unet.model import UNet

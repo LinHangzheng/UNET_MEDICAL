@@ -38,6 +38,7 @@ train_input:
     patch_step: 20 #
 
 model:
+    model_type : "UNet" # GeneratorUNet UNet
     pretrained: False
     pretrained_from_DDP: True
     classes_num: 7
@@ -85,7 +86,7 @@ runconfig:
     epochs: 100000
     steps_per_epoch: 32
     train_batch_size: 32
-    eval_batch_size: 256
+    eval_batch_size: 2
     save_summary_epoch: 10
     save_checkpoints_epoch: 10
     keep_checkpoint_max: 2
@@ -96,7 +97,7 @@ runconfig:
     eval_steps: 100
     valid: True
     valid_only: False
-    valid_every: 10
+    valid_every: 1
     model_path: "checkpoints"
     save_as_new: True
     world_size: 1

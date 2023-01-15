@@ -133,7 +133,7 @@ class IRDataset(Dataset):
         else:
             round = idx //self.IR_patches.shape[0]
             idx = idx % self.IR_patches.shape[0] 
-            h,w = self.image_size*round,self.image_size*round
+            h,w = self.image_size*(round//2),self.image_size*(round%2)
         return self.IR_patches[idx][:,h:h+self.image_size,w:w+self.image_size], self.label_patches[idx][h:h+self.image_size,w:w+self.image_size] 
             
         

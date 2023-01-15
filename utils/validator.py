@@ -59,7 +59,7 @@ class Validator(object):
 
             pred = self.net(images)
             val_dict['ACU'] += [compute_acu(pred, labels, num_classes)]
-        val_dict['ACU'] = np.mean(val_dict['ACU'],axis=0)
+        val_dict['ACU'] = np.sum(val_dict['ACU'],axis=0)/len(self.val_data_loader)
         for i in range(1, num_classes+1):
             val_dict[f'ACU_{i}'] = val_dict['ACU'][i-1]
         val_dict['ACU'] = val_dict['ACU'][-1]
