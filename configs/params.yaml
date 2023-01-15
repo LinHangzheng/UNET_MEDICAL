@@ -26,7 +26,7 @@ train_input:
     train_test_split: 0.79
     num_classes: 7
     # IR_threshould: 0.18
-    image_size: 32 #128
+    image_size: 96 #128
     dataset: "IR_dataset"
     IR_channel_level: 6 # up to 19 
     
@@ -83,7 +83,8 @@ optimizer:
 
 runconfig:
     epochs: 100000
-    train_batch_size: 4
+    steps_per_epoch: 32
+    train_batch_size: 16
     eval_batch_size: 256
     save_summary_epoch: 10
     save_checkpoints_epoch: 10
@@ -95,7 +96,7 @@ runconfig:
     eval_steps: 100
     valid: True
     valid_only: False
-    valid_every: 4
+    valid_every: 5
     model_path: "checkpoints"
     save_as_new: True
     world_size: 1
