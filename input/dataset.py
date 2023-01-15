@@ -125,6 +125,8 @@ class IRDataset(Dataset):
             return self.IR_patches.shape[0]
      
     def __getitem__(self, idx:int):
-        idx = idx%(self.IR_patches.shape[0])
-        h,w = torch.randint(high=self.large_patch_size-self.image_size-1,size=(2,))
+        if self.mode == "train":
+            h,w = torch.randint(high=self.large_patch_size-self.image_size-1,size=(2,))
+        else:
+            h,w = 15,15
         return self.IR_patches[idx][:,h:h+self.image_size,w:w+self.image_size], self.label_patches[idx][h:h+self.image_size,w:w+self.image_size] 
