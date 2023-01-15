@@ -84,8 +84,8 @@ class Trainer(object):
         # Set device to use
         self.use_cuda = torch.cuda.is_available()
         self.device = torch.device(self.rank if self.use_cuda else 'cpu')
-        device_name = torch.cuda.get_device_name(device=self.device)
-        log.info(f'Using {device_name} with CUDA v{torch.version.cuda}')
+        self.device_name = torch.cuda.get_device_name(device=self.device)
+        log.info(f'Using {self.device_name} with CUDA v{torch.version.cuda}')
 
         self.latents = None
         
@@ -122,12 +122,16 @@ class Trainer(object):
         
     def set_wandb(self):
         if self.rank ==0:
-            wandb.init(project="test", entity="color-recon", mode="disabled")#,mode="disabled"
+            wandb.init(project="holli", entity="color-recon")#,mode="disabled"
             wandb.config.update = {
                 "learning_rate": self.lr,
                 "epochs": self.epochs,
                 "batch_size": self.batch,
                 "image_size":self.image_size,
+                "weight_decay_rate":self.weight_decay_rate,
+                "world_size": self.world_size,
+                "device_name": self.device_name,
+                "model_type": self.model_type
                 }
         
     def set_dataset(self):
@@ -150,7 +154,7 @@ class Trainer(object):
         self.train_data_loader = DataLoader(self.train_dataset, batch_size=self.batch, 
                                             shuffle=False, pin_memory=True, num_workers=0,sampler=sampler)
         self.timer.check('create_dataloader')
-        log.info("Loaded mesh dataset")
+        log.info("Loaded dataset")
             
     def set_network(self):
         """
@@ -315,7 +319,8 @@ class Trainer(object):
         self.log_dict['training_acu'] /= len(self.train_data_loader)
         log_text += ' | total loss: {:>.3E}'.format(self.log_dict['total_loss'])
         log_text += ' | training acu {}'.format(self.log_dict['training_acu'])
-        wandb.log({"total loss": self.log_dict['total_loss']})
+        wandb.log({"total loss": self.log_dict['total_loss'],
+                   "training acurracy": self.log_dict['training_acu']})
         log.info(log_text)
 
         # Log losses
