@@ -16,63 +16,51 @@ class IRDataset(Dataset):
         self.data_dir = params["train_input"]["dataset_path"]
         self.IR_channel_level = params["train_input"]["IR_channel_level"]
         self.num_classes = params["train_input"]["num_classes"]
-        self.IR_threshold = params["train_input"]["IR_threshould"]
         self.image_size = params["train_input"]["image_size"]
         self.seed = params["train_input"].get("seed", None)
-        self.batch = params["train_input"]["train_batch_size"]
+        self.batch = params["runconfig"]["train_batch_size"] if mode =='train' else params["runconfig"]["eval_batch_size"]
         self.train_test_split = params["train_input"]["train_test_split"]
-        self.steps_per_epoch = params["train_input"]["steps_per_epoch"]
+        self.steps_per_epoch = params["runconfig"]["steps_per_epoch"]
         self.large_patch_size = params["train_input"]["large_patch_size"]
-        self.patch_h_dim = params["train_input"]["patch_h_dim"]
-        self.patch_w_dim = params["train_input"]["patch_h_dim"]
-        self.train_patch_step = params["train_input"]["train_patch_step"]
-        self.test_patch_step = params["train_input"]["test_patch_step"]
-        # IR = np.array(h5py.File(os.path.join(self.data_dir,'IR.mat'), 'r')['X'])
-        # IR = self.normolize(IR)
-        # label = np.array(h5py.File(os.path.join(self.data_dir,'Class.mat'), 'r')['CL'])
-        # IR = np.moveaxis(IR, 0, -1)
-
-        # self.train_IR = None
-        # self.test_IR = None
-        # self.train_label = None
-        # self.test_label = None 
-        # self.data_split(IR,label,self.train_test_split)
+        self.patch_h_dim = params["train_input"]["train_patch_h_dim"] if mode =='train' else params["train_input"]["test_patch_h_dim"]
+        self.patch_w_dim = params["train_input"]["train_patch_w_dim"] if mode =='train' else params["train_input"]["test_patch_w_dim"]
+        self.patch_step = params["train_input"]["patch_step"]
+        self.augment_data = params["train_input"]["augment_data"]
         
         self.IR_patches = None
         self.label_patches = None
         if mode =="train":
-            with open(os.path.join(self.data_dir,'train_IR'),'rb') as f:
-                self.train_IR = np.load(f)
-            with open(os.path.join(self.data_dir,'train_label'),'rb') as f:
-                self.train_label = np.load(f)
-                
-            self.train_data_preparation(self.train_IR, 
-                                self.train_label,
-                                self.large_patch_size,
-                                self.patch_h_dim,
-                                self.patch_w_dim,
-                                self.train_patch_step
-                                )
-            del self.train_IR, self.train_label
+            with open(os.path.join(self.data_dir,'train_IR'),'rb') as f1, \
+                open(os.path.join(self.data_dir,'train_label'),'rb') as f2:
+                self.IR = np.load(f1)
+                self.label = np.load(f2)
         else:
-            with open(os.path.join(self.data_dir,'test_IR'),'rb') as f:
-                self.test_IR = np.load(f)
-            with open(os.path.join(self.data_dir,'test_label'),'rb') as f:
-                self.test_label = np.load(f)
-            self.test_data_preparation(self.test_IR, 
-                                self.test_label,
-                                self.image_size,
-                                self.IR_threshold,
-                                self.test_patch_step)
-            del self.test_IR, self.test_label
-        
-    
+            with open(os.path.join(self.data_dir,'test_IR'),'rb') as f1, \
+                open(os.path.join(self.data_dir,'test_label'),'rb') as f2:
+                self.IR = np.load(f1)
+                self.label = np.load(f2)
+                
+        self.data_preparation(self.IR, 
+                            self.label,
+                            self.large_patch_size,
+                            self.patch_h_dim,
+                            self.patch_w_dim,
+                            self.patch_step
+                            )
+        del self.IR, self.label
+        self.data_augmentation()
+        for i in range(self.IR_patches.shape[0]):
+            img = Image.fromarray(np.array(self.label_patches[i]/6*255,dtype=np.uint8))
+            img.save(f"{self.mode}_label_{i}.jpg")
+            img = Image.fromarray(np.array(self.IR_patches[i][4]/torch.max(self.IR_patches[i][4])*255,dtype=np.uint8))
+            img.save(f"{self.mode}_IR_{i}.jpg")
+            
     def normolize(self, IR):
         negative_idx = np.where(IR<0)
         IR[negative_idx] = 0
         return IR
     
-    def train_data_preparation(self, IR, label, large_patch_size=200, patch_h_dim=15, patch_w_dim=15, patch_step = 20):
+    def data_preparation(self, IR, label, large_patch_size=200, patch_h_dim=15, patch_w_dim=15, patch_step = 20):
         H, W = IR.shape[0], IR.shape[1]
         self.IR_patches, self.label_patches = [],[]
         
@@ -106,45 +94,10 @@ class IRDataset(Dataset):
                 
                 self.IR_patches.append(patch_IR)
                 self.label_patches.append(patch_label)
-                img = Image.fromarray(np.array(patch_label/6*255,dtype=np.uint8))
-                img.save(f"{i}_{j}_label.jpg")
-                img = Image.fromarray(np.array(patch_IR[4]))
-                img.save(f"{i}_{j}_img.jpg")
 
-    def test_data_preparation(self, IR, label, patch_size, threshold, patch_step=5):
-        H, W = IR.shape[0], IR.shape[1]
-        self.IR_patches, self.label_patches = [],[]
-
-
-        patches = patchify(IR[:,:,0], 
-                    (patch_size,patch_size), 
-                    step=patch_step)
-        patches_idx = np.where(np.mean(patches,axis=(2,3))>threshold)
-        
-        patch_c = []
-        for k in range(self.IR_channel_level):
-            patch = patchify(IR[:,:,k], 
-                                (patch_size,patch_size), 
-                                step=patch_step)
-            patch = torch.FloatTensor(patch[patches_idx])
-            patch_c.append(patch)
-        patch_IR = torch.stack(patch_c)      #[IR_channel_level,N,H,W]
-        patch_IR = patch_IR.permute(1,0,2,3)      #[N,IR_channel_level,H,W]
-        patches_label = patchify(label, 
-                    (patch_size,patch_size), 
-                    step=patch_step)
-        patch_label = patches_label[patches_idx]
-        
-        self.IR_patches = patch_IR
-        self.label_patches = patch_label.astype(int)
-        
-        # from matplotlib import pyplot as plt
-        # plt.imshow(patch_IR[0][0], interpolation='nearest')
-        # plt.show()
-        
-        # plt.imshow(patch_label[0], interpolation='nearest')
-        # plt.show()
-
+        self.IR_patches = torch.stack(self.IR_patches)
+        self.label_patches = torch.from_numpy(np.array(self.label_patches))
+                
 
     def data_split(self, IR, label, train_test_split):
         split_col = int(IR.shape[1]*train_test_split)
@@ -153,17 +106,30 @@ class IRDataset(Dataset):
         self.train_label = label[:,:split_col]
         self.test_label = label[:,split_col:]
 
-    
+    def data_augmentation(self):
+        if not self.augment_data:
+            return 
+        IR_rot90 = torch.rot90(self.IR_patches,1,[2,3])
+        IR_rot180 = torch.rot90(IR_rot90,1,[2,3])
+        IR_rot270 = torch.rot90(IR_rot180,1,[2,3])
+        IR_flipx = torch.flip(self.IR_patches,[2])
+        IR_flipy = torch.flip(self.IR_patches,[3])
+        label_rot90 = torch.rot90(self.label_patches,1,[1,2])
+        label_rot180 = torch.rot90(label_rot90,1,[1,2])
+        label_rot270 = torch.rot90(label_rot180,1,[1,2])
+        label_flipx = torch.flip(self.label_patches,[1])
+        label_flipy = torch.flip(self.label_patches,[2])
+        self.IR_patches = torch.concat([self.IR_patches,IR_rot90,IR_rot180,IR_rot270,IR_flipx,IR_flipy])
+        self.label_patches = torch.concat([self.label_patches,label_rot90,label_rot180,label_rot270,label_flipx,label_flipy])
+        
+        
     def __len__(self):
-        if self.mode =="train":
+        if self.mode=='train':
             return self.steps_per_epoch*self.batch
         else:
-            return len(self.IR_patches)
+            return self.IR_patches.shape[0]
      
     def __getitem__(self, idx:int):
-        if self.mode == "train":
-            idx = idx%(self.patch_h_dim*self.patch_w_dim)
-            h,w = torch.randint(high=self.large_patch_size-self.image_size-1,size=(2,))
-            return self.IR_patches[idx][:,h:h+self.image_size,w:w+self.image_size], self.label_patches[idx][h:h+self.image_size,w:w+self.image_size] 
-        else:
-            return self.IR_patches[idx], self.label_patches[idx]
+        idx = idx%(self.IR_patches.shape[0])
+        h,w = torch.randint(high=self.large_patch_size-self.image_size-1,size=(2,))
+        return self.IR_patches[idx][:,h:h+self.image_size,w:w+self.image_size], self.label_patches[idx][h:h+self.image_size,w:w+self.image_size] 

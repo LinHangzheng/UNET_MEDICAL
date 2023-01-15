@@ -8,7 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
-from utils import PerfTimer, Validator
+from utils import PerfTimer, Validator, compute_acu
 from input import IRDataset
 import torch.distributed as dist
 from collections import OrderedDict
@@ -56,23 +56,18 @@ class Trainer(object):
         self.data_dir = params["train_input"]["dataset_path"]
         self.IR_channel_level = params["train_input"]["IR_channel_level"]
         self.num_classes = params["train_input"]["num_classes"]
-        self.IR_threshold = params["train_input"]["IR_threshould"]
         self.image_size = params["train_input"]["image_size"]
-        self.seed = params["train_input"].get("seed", None)
-        self.batch = params["train_input"]["train_batch_size"]
-        self.train_test_split = params["train_input"]["train_test_split"]
-        self.steps_per_epoch = params["train_input"]["steps_per_epoch"]
-        self.large_patch_size = params["train_input"]["large_patch_size"]
-        self.patch_h_dim = params["train_input"]["patch_h_dim"]
-        self.patch_w_dim = params["train_input"]["patch_h_dim"]
-        self.train_patch_step = params["train_input"]["train_patch_step"]
-        self.test_patch_step = params["train_input"]["test_patch_step"]
+        
         self.pretrained = params['model']['pretrained']
         self.pretrained_from_DDP = params["model"]["pretrained_from_DDP"]
         self.logs = params["model"]["logs"]
+        
         self.optimizer = params["optimizer"]["optimizer_type"]
         self.lr = params["optimizer"]["lr"]
         self.weight_decay_rate = float(params["optimizer"]["weight_decay_rate"])
+        
+        self.steps_per_epoch = params["runconfig"]["steps_per_epoch"]
+        self.batch = params["runconfig"]["train_batch_size"]
         self.valid = params["runconfig"]["valid"]
         self.valid_only = params["runconfig"]["valid_only"]
         self.epochs = params["runconfig"]["epochs"]
@@ -82,6 +77,7 @@ class Trainer(object):
         self.save_as_new = params["runconfig"]["save_as_new"]
         self.world_size = params["runconfig"]["world_size"]
         self.mode = params["runconfig"]["mode"]
+        
         self.timer = PerfTimer(activate=False)
         self.timer.reset()
         self.rank = rank
@@ -132,7 +128,6 @@ class Trainer(object):
                 "epochs": self.epochs,
                 "batch_size": self.batch,
                 "image_size":self.image_size,
-                "IR_threshold": self.IR_threshold,
                 "steps_per_epoch": self.steps_per_epoch
                 }
         
@@ -232,6 +227,7 @@ class Trainer(object):
         self.log_dict['cross_entropy_loss'] = 0
         self.log_dict['total_loss'] = 0
         self.log_dict['total_iter_count'] = 0
+        self.log_dict['training_acu'] = 0
 
         self.timer.check('pre_epoch done')
 
@@ -271,6 +267,7 @@ class Trainer(object):
             self.log_dict['cross_entropy_loss'] += loss.item()
             self.log_dict['total_loss'] += loss.item()
             self.log_dict['total_iter_count'] += batch_size
+            self.log_dict['training_acu'] += compute_acu(preds, labels, self.num_classes, only_total=True, Flatten=True)
 
             loss /= batch_size
 
@@ -313,7 +310,9 @@ class Trainer(object):
 
         log_text = 'EPOCH {}/{}'.format(epoch+1, self.epochs)
         self.log_dict['total_loss'] /= self.log_dict['total_iter_count'] + 1e-6
+        self.log_dict['training_acu'] /= len(self.train_data_loader)
         log_text += ' | total loss: {:>.3E}'.format(self.log_dict['total_loss'])
+        log_text += ' | training acu {}'.format(self.log_dict['training_acu'])
         wandb.log({"total loss": self.log_dict['total_loss']})
         log.info(log_text)
 
@@ -375,7 +374,7 @@ class Trainer(object):
 
             self.post_epoch(epoch)
 
-            if self.rank ==0 and self.valid is not None and epoch % self.valid_every == 0:
+            if self.rank ==0 and self.valid is not None and (epoch+1) % self.valid_every == 0:
                  self.validate(epoch)
                  self.timer.check('validate')
                 

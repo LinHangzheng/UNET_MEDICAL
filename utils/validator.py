@@ -42,7 +42,7 @@ class Validator(object):
 
     def set_dataset(self):
         self.val_dataset = IRDataset(self.params, "eval")
-        self.val_data_loader = DataLoader(self.val_dataset, batch_size=self.params["train_input"]["eval_batch_size"], 
+        self.val_data_loader = DataLoader(self.val_dataset, batch_size=self.params["runconfig"]["eval_batch_size"], 
                                             shuffle=False, pin_memory=True, num_workers=4)
 
 
