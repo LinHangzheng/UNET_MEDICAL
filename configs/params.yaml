@@ -28,7 +28,7 @@ train_input:
     # IR_threshould: 0.18
     image_size: 96 #128
     dataset: "IR_dataset"
-    IR_channel_level: 6 # up to 19 
+    IR_channel_level: 10 # up to 19 
     
     large_patch_size: 200
     train_patch_h_dim: 10 #12
