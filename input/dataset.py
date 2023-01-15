@@ -24,6 +24,7 @@ class IRDataset(Dataset):
         self.patch_w_dim = params["train_input"]["train_patch_w_dim"] if mode =='train' else params["train_input"]["test_patch_w_dim"]
         self.patch_step = params["train_input"]["patch_step"]
         self.augment_data = params["train_input"]["augment_data"]
+        self.noise_variance = params["train_input"]["noise_variance"]
         
         self.IR_patches = None
         self.label_patches = None
@@ -49,9 +50,13 @@ class IRDataset(Dataset):
         self.data_augmentation()
         # for i in range(self.IR_patches.shape[0]):
         #     img = Image.fromarray(np.array(self.label_patches[i]/6*255,dtype=np.uint8))
+            
         #     img.save(f"{self.mode}_label_{i}.jpg")
-        #     img = Image.fromarray(np.array(self.IR_patches[i][4]/torch.max(self.IR_patches[i][4])*255,dtype=np.uint8))
+        #     IR = self.IR_patches[i][4] + (0.0001**0.5)*torch.randn(self.IR_patches[i][4].shape)
+        #     img = Image.fromarray(np.array((IR-torch.min(IR))/torch.max(IR)*255,dtype=np.uint8))
         #     img.save(f"{self.mode}_IR_{i}.jpg")
+        #     img = Image.fromarray(np.array((self.IR_patches[i][4]-torch.min(self.IR_patches[i][4]))/torch.max(self.IR_patches[i][4])*255,dtype=np.uint8))
+        #     img.save(f"{self.mode}_IR_{i}_ori.jpg")
             
     def normolize(self, IR):
         negative_idx = np.where(IR<0)
@@ -131,7 +136,7 @@ class IRDataset(Dataset):
         if self.mode == "train":
             h,w = torch.randint(high=self.large_patch_size-self.image_size-1,size=(2,))
             IR = self.IR_patches[idx][:,h:h+self.image_size,w:w+self.image_size]
-            IR = IR + (0.1**0.5)*torch.randn(IR.shape)
+            IR = IR + (self.noise_variance**0.5)*torch.randn(IR.shape)
             label = self.label_patches[idx][h:h+self.image_size,w:w+self.image_size] 
         else:
             round = idx //self.IR_patches.shape[0]
