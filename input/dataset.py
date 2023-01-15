@@ -18,9 +18,7 @@ class IRDataset(Dataset):
         self.num_classes = params["train_input"]["num_classes"]
         self.image_size = params["train_input"]["image_size"]
         self.seed = params["train_input"].get("seed", None)
-        self.batch = params["runconfig"]["train_batch_size"] if mode =='train' else params["runconfig"]["eval_batch_size"]
         self.train_test_split = params["train_input"]["train_test_split"]
-        self.steps_per_epoch = params["runconfig"]["steps_per_epoch"]
         self.large_patch_size = params["train_input"]["large_patch_size"]
         self.patch_h_dim = params["train_input"]["train_patch_h_dim"] if mode =='train' else params["train_input"]["test_patch_h_dim"]
         self.patch_w_dim = params["train_input"]["train_patch_w_dim"] if mode =='train' else params["train_input"]["test_patch_w_dim"]
@@ -49,11 +47,11 @@ class IRDataset(Dataset):
                             )
         del self.IR, self.label
         self.data_augmentation()
-        for i in range(self.IR_patches.shape[0]):
-            img = Image.fromarray(np.array(self.label_patches[i]/6*255,dtype=np.uint8))
-            img.save(f"{self.mode}_label_{i}.jpg")
-            img = Image.fromarray(np.array(self.IR_patches[i][4]/torch.max(self.IR_patches[i][4])*255,dtype=np.uint8))
-            img.save(f"{self.mode}_IR_{i}.jpg")
+        # for i in range(self.IR_patches.shape[0]):
+        #     img = Image.fromarray(np.array(self.label_patches[i]/6*255,dtype=np.uint8))
+        #     img.save(f"{self.mode}_label_{i}.jpg")
+        #     img = Image.fromarray(np.array(self.IR_patches[i][4]/torch.max(self.IR_patches[i][4])*255,dtype=np.uint8))
+        #     img.save(f"{self.mode}_IR_{i}.jpg")
             
     def normolize(self, IR):
         negative_idx = np.where(IR<0)
@@ -124,9 +122,6 @@ class IRDataset(Dataset):
         
         
     def __len__(self):
-        if self.mode=='train':
-            return self.steps_per_epoch*self.batch
-        else:
             return self.IR_patches.shape[0]
      
     def __getitem__(self, idx:int):

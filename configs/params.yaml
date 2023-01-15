@@ -83,7 +83,6 @@ optimizer:
 
 runconfig:
     epochs: 100000
-    steps_per_epoch: 32
     train_batch_size: 4
     eval_batch_size: 256
     save_summary_epoch: 10
