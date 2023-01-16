@@ -36,7 +36,7 @@ train_input:
     test_patch_h_dim: 10 #12
     test_patch_w_dim: 1 #12
     patch_step: 20 #
-    noise_variance: 0.0001
+    noise_variance: 0
 
 model:
     model_type : "UNet" # GeneratorUNet UNet
