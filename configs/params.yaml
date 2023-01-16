@@ -36,7 +36,7 @@ train_input:
     test_patch_h_dim: 10 #12
     test_patch_w_dim: 1 #12
     patch_step: 20 #
-    noise_variance: 0
+    noise_variance: 0.0001
 
 model:
     model_type : "UNet" # GeneratorUNet UNet
@@ -65,7 +65,7 @@ model:
     
 
 optimizer:
-    lr: 0.001
+    lr: 0.0001
     optimizer_type: 'adam' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 5e-5
     epsilon: 1e-6
