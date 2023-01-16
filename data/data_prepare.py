@@ -7,6 +7,7 @@ import numpy as np
 def normolize(IR):
     negative_pos = np.where(IR<0)
     IR[negative_pos] = 0
+    IR = IR/np.max(IR)
     return IR
 
 def data_split( IR, label, train_test_split):
