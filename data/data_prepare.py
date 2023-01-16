@@ -5,9 +5,10 @@ import numpy as np
 
 
 def normolize(IR):
-    min_val = np.min(IR,axis=(1,2)).reshape((-1,1,1))
+    negative_pos = np.where(IR<0)
+    IR[negative_pos] = 0
     max_val = np.max(IR,axis=(1,2)).reshape((-1,1,1))
-    IR = (IR-min_val)/(max_val-min_val)
+    IR = IR/max_val
     return IR
 
 def data_split( IR, label, train_test_split):
