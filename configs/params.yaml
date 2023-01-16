@@ -39,7 +39,7 @@ train_input:
     noise_variance: 0
 
 model:
-    model_type : "UNet" # GeneratorUNet UNet
+    model_type : "GeneratorUNet" # GeneratorUNet UNet
     pretrained: False
     pretrained_from_DDP: True
     classes_num: 7
@@ -65,7 +65,7 @@ model:
     
 
 optimizer:
-    lr: 0.001
+    lr: 0.0001
     optimizer_type: 'adam' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 5e-5
     epsilon: 1e-6
@@ -86,10 +86,10 @@ optimizer:
 runconfig:
     epochs: 100000
     steps_per_epoch: 32
-    train_batch_size: 32
+    train_batch_size: 54
     eval_batch_size: 256
-    save_summary_epoch: 10
-    save_checkpoints_epoch: 10
+    save_summary_epoch: 100
+    save_checkpoints_epoch: 100
     keep_checkpoint_max: 2
     model_dir: 'model_dir'
     cs_ip:
@@ -98,7 +98,7 @@ runconfig:
     eval_steps: 100
     valid: True
     valid_only: False
-    valid_every: 10
+    valid_every: 20
     model_path: "checkpoints"
     save_as_new: True
     world_size: 1

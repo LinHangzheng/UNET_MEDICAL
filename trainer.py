@@ -214,7 +214,7 @@ class Trainer(object):
         """
         Override this function to use custom validators.
         """
-        if self.valid is not None and self.rank ==0:
+        if self.valid and self.rank ==0:
             self.validator = Validator(self.params, self.rank, self.net)
             
     #######################
@@ -381,7 +381,7 @@ class Trainer(object):
 
             self.post_epoch(epoch)
 
-            if self.rank ==0 and self.valid is not None and (epoch+1) % self.valid_every == 0:
+            if self.rank ==0 and self.valid and (epoch+1) % self.valid_every == 0:
                  self.validate(epoch)
                  self.timer.check('validate')
                 
