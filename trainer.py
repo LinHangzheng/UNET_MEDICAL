@@ -58,15 +58,14 @@ class Trainer(object):
         self.num_classes = params["train_input"]["num_classes"]
         self.image_size = params["train_input"]["image_size"]
         
-        self.model_type = params['model']['model_type']
-        self.pretrained = params['model']['pretrained']
-        self.pretrained_from_DDP = params["model"]["pretrained_from_DDP"]
-        self.logs = params["model"]["logs"]
-        
         self.optimizer = params["optimizer"]["optimizer_type"]
         self.lr = params["optimizer"]["lr"]
         self.weight_decay_rate = float(params["optimizer"]["weight_decay_rate"])
         
+        self.model_type = params['runconfig']['model_type']
+        self.pretrained = params['runconfig']['pretrained']
+        self.pretrained_from_DDP = params["runconfig"]["pretrained_from_DDP"]
+        self.logs = params["runconfig"]["logs"]
         self.batch = params["runconfig"]["train_batch_size"]
         self.valid = params["runconfig"]["valid"]
         self.valid_only = params["runconfig"]["valid_only"]
@@ -122,7 +121,7 @@ class Trainer(object):
         
     def set_wandb(self):
         if self.rank ==0:
-            wandb.init(project="holli", entity="color-recon")#,mode="disabled"
+            wandb.init(project="holli", entity="color-recon", mode ='disabled')#,mode="disabled"
             wandb.config.update = {
                 "learning_rate": self.lr,
                 "epochs": self.epochs,
@@ -165,7 +164,12 @@ class Trainer(object):
             self.net = GeneratorUNet(in_channels=self.IR_channel_level, out_channels=self.num_classes)
         elif self.model_type == 'UNet':
             self.net = UNet(n_channels=self.IR_channel_level, n_classes=self.num_classes)
-        
+        elif self.model_type == 'Segmenter':
+            model_cfg = self.params['model'].copy()
+            model_cfg.update(self.params['vit'][model_cfg['backbone']])
+            model_cfg['image_size'] = (self.image_size, self.image_size)
+            model_cfg['channels'] = self.IR_channel_level
+            self.net = create_segmenter(model_cfg)
         if self.pretrained:
             state_dict = torch.load(self.pretrained)
             if not self.pretrained_from_DDP:
@@ -179,7 +183,7 @@ class Trainer(object):
             log.info("Pretrained model loaded")
 
         self.net.to(self.rank)
-        self.net = DDP(self.net, device_ids=[self.rank], output_device=self.rank, find_unused_parameters=False)
+        self.net = DDP(self.net, device_ids=[self.rank], output_device=self.rank,find_unused_parameters=True)
         log.info("Total number of parameters: {}".format(sum(p.numel() for p in self.net.parameters())))
 
     def set_optimizer(self):
@@ -251,8 +255,6 @@ class Trainer(object):
             """
             Override this function to change the per-iteration behaviour.
             """
-            idx = n_iter + (epoch * self.dataset_size)
-
             # Map to device
 
             images = data[0].to(self.rank)
