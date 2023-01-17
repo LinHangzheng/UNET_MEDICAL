@@ -22,7 +22,6 @@ train_input:
     dataset_path: 'data' # Place to store data
 
     num_parallel_calls: 0   # 0 means AUTOTUNE
-    # num_parallel_reads: 16
     train_test_split: 0.79
     num_classes: 7
     # IR_threshould: 0.18
@@ -39,29 +38,10 @@ train_input:
     noise_variance: 0.0001
 
 model:
-    model_type : "GeneratorUNet" # GeneratorUNet UNet
-    pretrained: False
-    pretrained_from_DDP: True
     classes_num: 7
-    hidden_size: 768
-    heads_num: 12
-    mlp_dim: 1024
-    encoders_num: 12
-    decoders_num: 2
-    dropout_rate: 0.1
-    warmup_steps: 0
-    decay_type: "linear"
-    weight_decay: 0.0001
-    tf_summary: False
-    boundary_casting: False
-    mixed_precision: True
-    ret_scores: False
     layer_norm_epsilon: 1.0e-05
-    ret_scores: False
-    extract_layers: [3, 6, 9, 12]
     initializer: "glorot_uniform"
     bias_initializer: "zeros"
-    logs: './checkpoints'
     
 
 optimizer:
@@ -70,32 +50,23 @@ optimizer:
     weight_decay_rate: 5e-5
     epsilon: 1e-6
     max_gradient_norm: 1.0
-    disable_lr_steps_reset: True
-    learning_rate:
-        - steps: 10000
-          scheduler: 'Linear'
-          initial_learning_rate: 0.0
-          end_learning_rate: 0.0001
-        - scheduler: 'Linear'
-          initial_learning_rate: 0.0001
-          end_learning_rate: 0.0
-          steps: 1000000
     loss_scaling_factor: 'dynamic'
 
 
 runconfig:
+    logs: './checkpoints'
+    model_type: "UNet"
+    pretrained: False
+    pretrained_from_DDP: True
     epochs: 100000
-    steps_per_epoch: 32
     train_batch_size: 54
     eval_batch_size: 256
     save_summary_epoch: 100
     save_checkpoints_epoch: 100
     keep_checkpoint_max: 2
     model_dir: 'model_dir'
-    cs_ip:
     multireplica: False
     mode: 'train'
-    eval_steps: 100
     valid: True
     valid_only: False
     valid_every: 20

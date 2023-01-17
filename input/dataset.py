@@ -47,7 +47,7 @@ class IRDataset(Dataset):
                             self.patch_step
                             )
         del self.IR, self.label
-        self.data_augmentation()
+        # self.data_augmentation()
         for i in range(self.IR_patches.shape[0]):
             img = Image.fromarray(np.array(self.label_patches[i]/6*255,dtype=np.uint8))
             
