@@ -103,7 +103,7 @@ vit:
 
 
 model:
-    backbone: "vit_tiny_patch16_384"
+    backbone: "vit_base_patch16_384"
     decoder:
         name: "mask_transformer"
         drop_path_rate: 0.0
@@ -113,7 +113,7 @@ model:
 
 
 optimizer:
-    lr: 0.0001
+    lr: 0.001
     optimizer_type: 'adam' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 5e-5
     epsilon: 1e-6
@@ -138,7 +138,7 @@ runconfig:
     pretrained_from_DDP: True
     epochs: 100000
     steps_per_epoch: 32
-    train_batch_size: 32
+    train_batch_size: 54
     eval_batch_size: 256
     save_summary_epoch: 100
     save_checkpoints_epoch: 100
