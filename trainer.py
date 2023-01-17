@@ -121,7 +121,7 @@ class Trainer(object):
         
     def set_wandb(self):
         if self.rank ==0:
-            wandb.init(project="holli", entity="color-recon", mode ='disabled')#,mode="disabled"
+            wandb.init(project="holli", entity="color-recon")#,mode="disabled"
             wandb.config.update = {
                 "learning_rate": self.lr,
                 "epochs": self.epochs,
@@ -275,7 +275,7 @@ class Trainer(object):
             self.log_dict['cross_entropy_loss'] += loss.item()
             self.log_dict['total_loss'] += loss.item()
             self.log_dict['total_iter_count'] += batch_size
-            self.log_dict['training_acu'] += compute_acu(preds, labels, self.num_classes, only_total=True, Flatten=True)
+            self.log_dict['training_acu'] += compute_acu(preds, labels, self.num_classes, only_total=True, Flatten=True)*batch_size
 
             loss /= batch_size
 
@@ -318,7 +318,7 @@ class Trainer(object):
 
         log_text = 'EPOCH {}/{}'.format(epoch+1, self.epochs)
         self.log_dict['total_loss'] /= self.log_dict['total_iter_count'] + 1e-6
-        self.log_dict['training_acu'] /= len(self.train_data_loader)
+        self.log_dict['training_acu'] /= self.log_dict['total_iter_count'] + 1e-6
         log_text += ' | total loss: {:>.3E}'.format(self.log_dict['total_loss'])
         log_text += ' | training acu {}'.format(self.log_dict['training_acu'])
         wandb.log({"total loss": self.log_dict['total_loss'],

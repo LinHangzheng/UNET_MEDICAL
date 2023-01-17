@@ -46,17 +46,20 @@ class IRDataset(Dataset):
                             self.patch_w_dim,
                             self.patch_step
                             )
+        img = Image.fromarray(np.array(self.label/6*255,dtype=np.uint8))
+        img.save(f"{self.mode}_label_ori.jpg")
         del self.IR, self.label
         self.data_augmentation()
-        # for i in range(self.IR_patches.shape[0]):
-        #     img = Image.fromarray(np.array(self.label_patches[i]/6*255,dtype=np.uint8))
+        for i in range(self.IR_patches.shape[0]):
+            img = Image.fromarray(np.array(self.label_patches[i]/6*255,dtype=np.uint8))
             
-        #     img.save(f"{self.mode}_label_{i}.jpg")
-        #     IR = self.IR_patches[i][4] + (0.0001**0.5)*torch.randn(self.IR_patches[i][4].shape)
-        #     img = Image.fromarray(np.array((IR-torch.min(IR))/torch.max(IR)*255,dtype=np.uint8))
-        #     img.save(f"{self.mode}_IR_{i}.jpg")
-        #     img = Image.fromarray(np.array((self.IR_patches[i][4]-torch.min(self.IR_patches[i][4]))/torch.max(self.IR_patches[i][4])*255,dtype=np.uint8))
-        #     img.save(f"{self.mode}_IR_{i}_ori.jpg")
+            img.save(f"{self.mode}_label_{i}.jpg")
+            # IR = self.IR_patches[i][4] + (0.0001**0.5)*torch.randn(self.IR_patches[i][4].shape)
+            # img = Image.fromarray(np.array((IR-torch.min(IR))/torch.max(IR)*255,dtype=np.uint8))
+            # img.save(f"{self.mode}_IR_{i}.jpg")
+            img = Image.fromarray(np.array((self.IR_patches[i][4]-torch.min(self.IR_patches[i][4]))/torch.max(self.IR_patches[i][4])*255,dtype=np.uint8))
+            img.save(f"{self.mode}_IR_{i}_ori.jpg")
+        
             
     def normolize(self, IR):
         negative_idx = np.where(IR<0)
@@ -141,7 +144,8 @@ class IRDataset(Dataset):
         else:
             round = idx //self.IR_patches.shape[0]
             idx = idx % self.IR_patches.shape[0] 
-            h,w = self.image_size*(round//2),self.image_size*(round%2)
+            h = (self.large_patch_size-self.image_size)//2*(round//2)
+            w = (self.large_patch_size-self.image_size)//2*(round%2)
             IR = self.IR_patches[idx][:,h:h+self.image_size,w:w+self.image_size]
             label = self.label_patches[idx][h:h+self.image_size,w:w+self.image_size] 
         return IR, label

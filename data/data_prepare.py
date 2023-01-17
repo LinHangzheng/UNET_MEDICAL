@@ -1,7 +1,7 @@
 import os
 import h5py
 import numpy as np
-
+from PIL import Image
 
 
 def normolize(IR):
@@ -24,6 +24,7 @@ if __name__ == "__main__":
     IR = normolize(IR)
     label = np.array(h5py.File(os.path.join(data_dir,'Class.mat'), 'r')['CL'])
     IR = np.moveaxis(IR, 0, -1)
+
     train_IR, test_IR, train_label, test_label = data_split(IR, label, 0.79)
     with open(os.path.join(data_dir,'train_IR'),'wb') as f:
         np.save(f, train_IR)
