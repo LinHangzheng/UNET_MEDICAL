@@ -25,13 +25,13 @@ train_input:
     train_test_split: 0.79
     num_classes: 7
     # IR_threshould: 0.18
-    image_size: 96 #128
+    image_size: 128 #128
     dataset: "IR_dataset"
     IR_channel_level: 10 # up to 19 
     
     large_patch_size: 200
-    train_patch_h_dim: 10 #12
-    train_patch_w_dim: 9 #12
+    train_patch_h_dim: 9 #12
+    train_patch_w_dim: 8 #12
     test_patch_h_dim: 10 #12
     test_patch_w_dim: 1 #12
     patch_step: 20 #
@@ -54,12 +54,12 @@ optimizer:
 
 
 runconfig:
-    logs: './checkpoints'
-    model_type: "UNet"
+    logs: './checkpoints/GeneratorUNet'
+    model_type: "GeneratorUNet" #UNet GeneratorUNet
     pretrained: False
     pretrained_from_DDP: True
     epochs: 100000
-    train_batch_size: 54
+    train_batch_size: 48
     eval_batch_size: 256
     save_summary_epoch: 100
     save_checkpoints_epoch: 100
@@ -70,6 +70,6 @@ runconfig:
     valid: True
     valid_only: False
     valid_every: 20
-    model_path: "checkpoints"
+    model_path: "checkpoints/GeneratorUNet"
     save_as_new: True
     world_size: 1
