@@ -18,7 +18,7 @@ description: "FC-MNIST base model params"
 train_input:
     shuffle: True
     shuffle_buffer_size : 10000
-    augment_data: False
+    augment_data: True
     dataset_path: 'data' # Place to store data
 
     num_parallel_calls: 0   # 0 means AUTOTUNE
@@ -31,10 +31,10 @@ train_input:
     IR_channel_level: 19 # up to 19 
     
     large_patch_size: 300
-    train_patch_h_dim: 9 #12
+    train_patch_h_dim: 10 #12
     train_patch_w_dim: 8 #12
     test_patch_h_dim: 10 #12
-    test_patch_w_dim: 1 #12
+    test_patch_w_dim: 2 #12
     patch_step: 100 #
     noise_variance: 0
 
@@ -103,7 +103,7 @@ vit:
 
 
 model:
-    backbone: "vit_base_patch16_384"
+    backbone: "vit_tiny_patch16_384"
     decoder:
         name: "mask_transformer"
         drop_path_rate: 0.0
