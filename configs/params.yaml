@@ -25,17 +25,17 @@ train_input:
     train_test_split: 0.79
     num_classes: 7
     # IR_threshould: 0.18
-    image_size: 128 #128
+    image_size: 96 #128
     dataset: "IR_dataset"
     IR_channel_level: 10 # up to 19 
     
-    large_patch_size: 200
-    train_patch_h_dim: 9 #12
+    large_patch_size: 300
+    train_patch_h_dim: 10 #12
     train_patch_w_dim: 8 #12
     test_patch_h_dim: 10 #12
-    test_patch_w_dim: 1 #12
+    test_patch_w_dim: 2 #12
     patch_step: 20 #
-    noise_variance: 0.0001
+    noise_variance: 0
 
 model:
     classes_num: 7

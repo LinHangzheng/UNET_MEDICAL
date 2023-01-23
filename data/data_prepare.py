@@ -16,6 +16,28 @@ def data_split( IR, label, train_test_split):
     test_IR = IR[:,split_col:]
     train_label = label[:,:split_col]
     test_label = label[:,split_col:]
+    
+    img = Image.fromarray(np.array(label/6*255,dtype=np.uint8))
+    
+    img.save("label.jpg")
+    pos = { 0 : np.where(label==0),
+            1 : np.where(label==1),
+            2 : np.where(label==2),
+            3 : np.where(label==3),
+            4 : np.where(label==4),
+            5 : np.where(label==5),
+            6 : np.where(label==6)}
+    for i in range(7):
+        label = label*0
+        label[pos[i]] = 255
+        img = Image.fromarray(np.array(label,dtype=np.uint8))
+        img.save(f"label{i+1}.jpg")
+        
+    img.save("label3.jpg")
+    # IR = self.IR_patches[i][4] + (0.0001**0.5)*torch.randn(self.IR_patches[i][4].shape)
+    # img = Image.fromarray(np.array((IR-torch.min(IR))/torch.max(IR)*255,dtype=np.uint8))
+    # img.save(f"{self.mode}_IR_{i}.jpg")
+            
     return train_IR, test_IR, train_label, test_label
 
 if __name__ == "__main__":
