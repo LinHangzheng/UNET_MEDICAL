@@ -123,7 +123,7 @@ class Trainer(object):
         
     def set_wandb(self):
         if self.rank ==0:
-            wandb.init(project="holli", entity="color-recon",mode="disabled")#,mode="disabled"
+            wandb.init(project="holli", entity="color-recon")#,mode="disabled"
             wandb.config.update = {
                 "learning_rate": self.lr,
                 "epochs": self.epochs,

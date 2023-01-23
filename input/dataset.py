@@ -20,10 +20,6 @@ class IRDataset(Dataset):
         self.num_classes = params["train_input"]["num_classes"]
         self.image_size = params["train_input"]["image_size"]
         self.seed = params["train_input"].get("seed", None)
-        self.train_test_split = params["train_input"]["train_test_split"]
-        self.patch_h_dim = params["train_input"]["train_patch_h_dim"] if mode =='train' else params["train_input"]["test_patch_h_dim"]
-        self.patch_w_dim = params["train_input"]["train_patch_w_dim"] if mode =='train' else params["train_input"]["test_patch_w_dim"]
-        self.patch_step = params["train_input"]["patch_step"]
         self.augment_data = params["train_input"]["augment_data"]
         self.noise_variance = params["train_input"]["noise_variance"]
         
