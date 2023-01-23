@@ -29,7 +29,7 @@ train_input:
     dataset: "IR_dataset"
     IR_channel_level: 10 # up to 19 
     
-    large_patch_size: 200
+    large_patch_size: 230
     train_patch_h_dim: 10 #12
     train_patch_w_dim: 9 #12
     test_patch_h_dim: 10 #12

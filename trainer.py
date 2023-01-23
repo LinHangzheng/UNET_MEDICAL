@@ -12,7 +12,9 @@ from utils import PerfTimer, Validator, compute_acu
 from input import IRDataset
 import torch.distributed as dist
 from collections import OrderedDict
+import numpy as np
 import wandb
+from PIL import Image
 class Trainer(object):
     """
     Base class for the trainer.
@@ -121,7 +123,7 @@ class Trainer(object):
         
     def set_wandb(self):
         if self.rank ==0:
-            wandb.init(project="holli", entity="color-recon")#,mode="disabled"
+            wandb.init(project="holli", entity="color-recon",mode="disabled")#,mode="disabled"
             wandb.config.update = {
                 "learning_rate": self.lr,
                 "epochs": self.epochs,
@@ -267,8 +269,22 @@ class Trainer(object):
             # Calculate loss
             preds = self.net(images)
             preds = preds.moveaxis(1,3)
+            # for i in range(images.shape[0]):
+            #     im = np.array(images[i][4].to("cpu"))
+            #     im = im/np.max(im)*255
+            #     im = im.astype(np.uint8)
+            #     im = Image.fromarray(im)
+            #     im.save(f"IR_{i}.jpg")
+            #     lab = np.array(labels[i].to("cpu"))
+            #     lab = lab/6*255
+            #     lab = lab.astype(np.uint8)
+            #     lab = Image.fromarray(lab)
+            #     lab.save(f"label_{i}.jpg")
+                
+                
             preds = torch.reshape(preds,[-1,self.num_classes])
             labels = torch.reshape(labels, [-1])
+            
             loss = self.loss(preds,labels)
             
             # Update logs
