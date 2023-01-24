@@ -15,94 +15,25 @@
 # Params for FC MNIST model
 description: "FC-MNIST base model params"
 
-train_input:
+train_input: 
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
     dataset_path: 'data' # Place to store data
-
     num_parallel_calls: 0   # 0 means AUTOTUNE
     # num_parallel_reads: 16
     num_classes: 7
     image_size: 96 #128
     dataset: "IR_dataset"
-    IR_channel_level: 19 # up to 19 
+    IR_channel_level: 19 # up to 19     
     noise_variance: 0
 
-vit:
-  vit_base_patch8_384:
-    image_size: 384
-    patch_size: 8
-    d_model: 768
-    n_heads: 12
-    n_layers: 12
-    normalization: vit
-    distilled: false
-  vit_tiny_patch16_384:
-    image_size: 384
-    patch_size: 16
-    d_model: 192
-    n_heads: 3
-    n_layers: 12
-    normalization: vit
-    distilled: false
-  vit_small_patch16_384:
-    image_size: 384
-    patch_size: 16
-    d_model: 384
-    n_heads: 6
-    n_layers: 12
-    normalization: vit
-    distilled: false
-  vit_base_patch16_384:
-    image_size: 384
-    patch_size: 16
-    d_model: 768
-    n_heads: 12
-    n_layers: 12
-    normalization: vit
-    distilled: false
-  vit_large_patch16_384:
-    image_size: 384
-    patch_size: 16
-    d_model: 1024
-    n_heads: 16
-    n_layers: 24
-    normalization: vit
-  vit_small_patch32_384:
-    image_size: 384
-    patch_size: 32
-    d_model: 384
-    n_heads: 6
-    n_layers: 12
-    normalization: vit
-    distilled: false
-  vit_base_patch32_384:
-    image_size: 384
-    patch_size: 32
-    d_model: 768
-    n_heads: 12
-    n_layers: 12
-    normalization: vit
-  vit_large_patch32_384:
-    image_size: 384
-    patch_size: 32
-    d_model: 1024
-    n_heads: 16
-    n_layers: 24
-    normalization: vit
-
-
 model:
-    backbone: "vit_large_patch16_384"
-    decoder:
-        name: "mask_transformer"
-        drop_path_rate: 0.0
-        dropout: 0.1
-        n_layers: 2
-    n_cls: 7
-
-
+    embed_dim: 768
+    patch_size: 16
+    num_heads: 12
+    dropout: 0.1
+    
 optimizer:
     lr: 0.001
     optimizer_type: 'adam' # {'sgd', 'momentum', 'adam', 'adamw'}
@@ -123,8 +54,8 @@ optimizer:
 
 
 runconfig:
-    model_type: "Segmenter"
-    logs: './checkpoints/Segmenter'
+    model_type: "UNETR"
+    logs: './checkpoints/UNETR'
     pretrained: False
     pretrained_from_DDP: True
     epochs: 100000

@@ -118,7 +118,7 @@ class Trainer(object):
     def set_process(self,rank, world_size):
         
         os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12345'
+        os.environ['MASTER_PORT'] = '12375'
         dist.init_process_group("nccl", rank=rank, world_size=world_size)
         
     def set_wandb(self):
@@ -172,6 +172,15 @@ class Trainer(object):
             model_cfg['image_size'] = (self.image_size, self.image_size)
             model_cfg['channels'] = self.IR_channel_level
             self.net = create_segmenter(model_cfg)
+        elif self.model_type == 'UNETR':
+            params_model = self.params['model']
+            self.net = UNETR(img_shape=(self.image_size, self.image_size), 
+                             input_dim=self.IR_channel_level, 
+                             output_dim=self.num_classes, 
+                             embed_dim=params_model['embed_dim'], 
+                             patch_size=params_model['patch_size'], 
+                             num_heads=params_model['num_heads'], 
+                             dropout=params_model['dropout'])
         if self.pretrained:
             state_dict = torch.load(self.pretrained)
             if not self.pretrained_from_DDP:
