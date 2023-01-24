@@ -172,6 +172,14 @@ class Trainer(object):
             model_cfg['image_size'] = (self.image_size, self.image_size)
             model_cfg['channels'] = self.IR_channel_level
             self.net = create_segmenter(model_cfg)
+        elif self.model_type == 'UNETR':
+            self.net = UNETR(img_shape=(self.image_size, self.image_size), 
+                             input_dim=self.IR_channel_level, 
+                             output_dim=self.num_classes, 
+                             embed_dim=768, 
+                             patch_size=16, 
+                             num_heads=12, 
+                             dropout=0.1)
         if self.pretrained:
             state_dict = torch.load(self.pretrained)
             if not self.pretrained_from_DDP:
