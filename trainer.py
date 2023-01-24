@@ -123,7 +123,7 @@ class Trainer(object):
         
     def set_wandb(self):
         if self.rank ==0:
-            wandb.init(project="holli", entity="color-recon")#,mode="disabled"
+            wandb.init(project="holli", entity="color-recon",mode="disabled")#,mode="disabled"
             wandb.config.update = {
                 "learning_rate": self.lr,
                 "epochs": self.epochs,
@@ -173,13 +173,14 @@ class Trainer(object):
             model_cfg['channels'] = self.IR_channel_level
             self.net = create_segmenter(model_cfg)
         elif self.model_type == 'UNETR':
+            params_model = self.params['model']
             self.net = UNETR(img_shape=(self.image_size, self.image_size), 
                              input_dim=self.IR_channel_level, 
                              output_dim=self.num_classes, 
-                             embed_dim=768, 
-                             patch_size=16, 
-                             num_heads=12, 
-                             dropout=0.1)
+                             embed_dim=params_model['embed_dim'], 
+                             patch_size=params_model['patch_size'], 
+                             num_heads=params_model['num_heads'], 
+                             dropout=params_model['dropout'])
         if self.pretrained:
             state_dict = torch.load(self.pretrained)
             if not self.pretrained_from_DDP:
