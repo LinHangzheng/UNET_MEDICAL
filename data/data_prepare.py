@@ -3,7 +3,6 @@ import h5py
 import numpy as np
 from PIL import Image
 import shutil
-
 def normolize(IR):
     negative_pos = np.where(IR<0)
     IR[negative_pos] = 0

@@ -1,12 +1,11 @@
 import os
-import h5py
 import torch
 from torch.utils.data import Dataset
-from sklearn.feature_extraction import image
-from patchify import patchify
 import numpy as np
 from PIL import Image
 from glob import glob
+
+from einops import rearrange
 import torchvision.transforms.functional as TF
 class IRDataset(Dataset):
     def __init__(self, 
@@ -33,8 +32,8 @@ class IRDataset(Dataset):
         self.IR_patches = torch.from_numpy(np.array([np.load(path) for path in self.IR]).astype(np.float32))
         self.label_patches = torch.from_numpy(np.array([np.load(path) for path in self.label]).astype(np.int64))
         self.large_patch_size = self.IR_patches[0].shape[0]
-        self.IR_patches = torch.moveaxis(self.IR_patches, 3,1)
         
+        self.IR_patches = rearrange(self.IR_patches, 'b h w c -> b c h w')
         
         self.data_augmentation()
         self.label_patches = torch.unsqueeze(self.label_patches, dim=1)

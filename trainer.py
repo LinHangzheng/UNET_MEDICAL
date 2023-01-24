@@ -14,6 +14,7 @@ import torch.distributed as dist
 from collections import OrderedDict
 import numpy as np
 import wandb
+from einops import rearrange
 from PIL import Image
 class Trainer(object):
     """
@@ -277,23 +278,10 @@ class Trainer(object):
 
             # Calculate loss
             preds = self.net(images)
-            preds = preds.moveaxis(1,3)
-            # for i in range(images.shape[0]):
-            #     im = np.array(images[i][4].to("cpu"))
-            #     im = im/np.max(im)*255
-            #     im = im.astype(np.uint8)
-            #     im = Image.fromarray(im)
-            #     im.save(f"IR_{i}.jpg")
-            #     lab = np.array(labels[i].to("cpu"))
-            #     lab = lab/6*255
-            #     lab = lab.astype(np.uint8)
-            #     lab = Image.fromarray(lab)
-            #     lab.save(f"label_{i}.jpg")
-                
-                
-            preds = torch.reshape(preds,[-1,self.num_classes])
+            preds = rearrange(preds, 'b c h w -> (b h w) c')
+            labels = rearrange(labels, 'b h w -> (b h w)')
             labels = torch.reshape(labels, [-1])
-            
+        
             loss = self.loss(preds,labels)
             
             # Update logs
