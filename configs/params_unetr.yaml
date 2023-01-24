@@ -23,7 +23,7 @@ train_input:
     num_parallel_calls: 0   # 0 means AUTOTUNE
     # num_parallel_reads: 16
     num_classes: 7
-    image_size: 96 #128
+    image_size: 160 #128
     dataset: "IR_dataset"
     IR_channel_level: 19 # up to 19     
     noise_variance: 0
@@ -35,7 +35,7 @@ model:
     dropout: 0.1
     
 optimizer:
-    lr: 0.001
+    lr: 0.0001
     optimizer_type: 'adam' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 5e-5
     epsilon: 1e-6
@@ -56,7 +56,7 @@ optimizer:
 runconfig:
     model_type: "UNETR"
     logs: './checkpoints/UNETR'
-    pretrained: False
+    pretrained: "./checkpoints/20230124-033743.pth"
     pretrained_from_DDP: True
     epochs: 100000
     steps_per_epoch: 32

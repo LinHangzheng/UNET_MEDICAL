@@ -118,7 +118,7 @@ class Trainer(object):
     def set_process(self,rank, world_size):
         
         os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12375'
+        os.environ['MASTER_PORT'] = '12385'
         dist.init_process_group("nccl", rank=rank, world_size=world_size)
         
     def set_wandb(self):
