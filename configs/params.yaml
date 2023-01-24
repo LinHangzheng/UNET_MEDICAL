@@ -47,13 +47,13 @@ optimizer:
 
 
 runconfig:
-    logs: './checkpoints/GeneratorUNet'
-    model_type: "GeneratorUNet" #UNet GeneratorUNet
+    logs: './checkpoints/UNet'
+    model_type: "UNet" #UNet GeneratorUNet
     pretrained: False
     pretrained_from_DDP: True
     epochs: 100000
-    train_batch_size: 48
-    eval_batch_size: 256
+    train_batch_size: 32
+    eval_batch_size: 32
     save_summary_epoch: 100
     save_checkpoints_epoch: 100
     keep_checkpoint_max: 2
@@ -64,5 +64,5 @@ runconfig:
     valid_only: False
     valid_every: 20
     model_path: "checkpoints/GeneratorUNet"
-    save_as_new: True
+    save_as_new: False
     world_size: 1

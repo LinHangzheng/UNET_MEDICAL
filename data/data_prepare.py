@@ -51,8 +51,8 @@ def create_folder(path):
             
 if __name__ == "__main__":
     data_dir = './'
-    train_folder = './training'
-    test_folder = './testing'
+    train_folder = './train'
+    test_folder = './test'
     create_folder(train_folder)
     create_folder(test_folder)
         

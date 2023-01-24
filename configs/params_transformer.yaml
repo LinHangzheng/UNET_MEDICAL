@@ -152,5 +152,5 @@ runconfig:
     valid_only: False
     valid_every: 20
     model_path: "checkpoints"
-    save_as_new: True
+    save_as_new: False
     world_size: 1
