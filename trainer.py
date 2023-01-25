@@ -182,6 +182,16 @@ class Trainer(object):
                              patch_size=params_model['patch_size'], 
                              num_heads=params_model['num_heads'], 
                              dropout=params_model['dropout'])
+        elif self.model_type == 'SwinUNet':
+            params_model = self.params['model']
+            self.net = SwinUnet(img_size=self.image_size,
+                                num_classes=self.num_classes,
+                                patch_size=params_model['patch_size'],
+                                in_chans=self.IR_channel_level,
+                                embed_dim=params_model['embed_dim'],
+                                window_size=params_model['window_size'],
+                                
+                                )
         if self.pretrained:
             state_dict = torch.load(self.pretrained)
             if not self.pretrained_from_DDP:

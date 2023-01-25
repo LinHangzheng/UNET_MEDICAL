@@ -36,10 +36,10 @@ def save_data(IR, label, patches, img_size, folder):
             open(os.path.join(folder, 'label', f'label_{i}'), 'wb') as f2:
             np.save(f1, IR_patch)
             np.save(f2, Label_patch)
-        # img = Image.fromarray(np.array(IR_patch[:,:,0]/np.max(IR_patch[:,:,0])*255, dtype=np.uint8))
-        # img.save(os.path.join(folder, 'IR', f'IR_{i}.jpeg'))
-        # img = Image.fromarray(np.array(Label_patch/7*255, dtype=np.uint8))
-        # img.save(os.path.join(folder, 'label', f'label_{i}.jpeg'))
+        img = Image.fromarray(np.array(IR_patch[:,:,0]/np.max(IR_patch[:,:,0])*255, dtype=np.uint8))
+        img.save(os.path.join(folder, 'IR', f'IR_{i}.jpeg'))
+        img = Image.fromarray(np.array(Label_patch/7*255, dtype=np.uint8))
+        img.save(os.path.join(folder, 'label', f'label_{i}.jpeg'))
         
 def create_folder(path):
     if os.path.exists(path):
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     IR = normolize(IR)  
     label = np.array(h5py.File(os.path.join(data_dir,'Class.mat'), 'r')['CL'])  # [H, W]
     IR = np.moveaxis(IR, 0, -1) # [H, W, C]
-    img_size = 230
+    img_size = 250
     train_test_split = 0.8
     with open("cell_centers.txt", "r") as f:
         pts = f.readlines()
