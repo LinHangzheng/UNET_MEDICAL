@@ -61,7 +61,7 @@ runconfig:
     pretrained_from_DDP: True
     epochs: 100000
     steps_per_epoch: 32
-    train_batch_size: 4
+    train_batch_size: 32
     eval_batch_size: 32
     save_summary_epoch: 100
     save_checkpoints_epoch: 100
