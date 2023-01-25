@@ -119,12 +119,12 @@ class Trainer(object):
     def set_process(self,rank, world_size):
         
         os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12385'
+        os.environ['MASTER_PORT'] = '12375'
         dist.init_process_group("nccl", rank=rank, world_size=world_size)
         
     def set_wandb(self):
         if self.rank ==0:
-            wandb.init(project="holli", entity="color-recon",mode="disabled")#,mode="disabled"
+            wandb.init(project="holli", entity="color-recon")#,mode="disabled"
             wandb.config.update = {
                 "learning_rate": self.lr,
                 "epochs": self.epochs,
