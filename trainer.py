@@ -190,7 +190,7 @@ class Trainer(object):
                                 in_chans=self.IR_channel_level,
                                 embed_dim=params_model['embed_dim'],
                                 window_size=params_model['window_size'],
-                                
+
                                 )
         if self.pretrained:
             state_dict = torch.load(self.pretrained)
@@ -290,7 +290,6 @@ class Trainer(object):
             preds = self.net(images)
             preds = rearrange(preds, 'b c h w -> (b h w) c')
             labels = rearrange(labels, 'b h w -> (b h w)')
-            labels = torch.reshape(labels, [-1])
         
             loss = self.loss(preds,labels)
             
@@ -298,7 +297,7 @@ class Trainer(object):
             self.log_dict['cross_entropy_loss'] += loss.item()
             self.log_dict['total_loss'] += loss.item()
             self.log_dict['total_iter_count'] += batch_size
-            self.log_dict['training_acu'] += compute_acu(preds, labels, self.num_classes, only_total=True, Flatten=True)*batch_size
+            self.log_dict['training_acu'] += compute_acu(preds, labels, self.num_classes, only_total=True)*batch_size
 
             loss /= batch_size
 

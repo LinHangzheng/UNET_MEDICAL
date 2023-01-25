@@ -23,14 +23,14 @@ train_input:
     num_parallel_calls: 0   # 0 means AUTOTUNE
     # num_parallel_reads: 16
     num_classes: 7
-    image_size: 168 #128
+    image_size: 224 #128
     dataset: "IR_dataset"
     IR_channel_level: 19 # up to 19     
     noise_variance: 0
 
 model:
     embed_dim: 768
-    patch_size: 8
+    patch_size: 16
     num_heads: 12
     dropout: 0.1
     
@@ -60,8 +60,8 @@ runconfig:
     pretrained_from_DDP: True
     epochs: 100000
     steps_per_epoch: 32
-    train_batch_size: 4
-    eval_batch_size: 32
+    train_batch_size: 1
+    eval_batch_size: 1
     save_summary_epoch: 100
     save_checkpoints_epoch: 100
     keep_checkpoint_max: 2

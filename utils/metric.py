@@ -1,10 +1,7 @@
 import torch
 
-def compute_acu(pre, labels,num_classes, only_total=False, Flatten=False):
+def compute_acu(pre, labels, num_classes, only_total=False):
     x = pre
-    if not Flatten:
-        x = x.moveaxis(1,3)
-        x = x.reshape(-1,num_classes)
     x = torch.argmax(x,dim=1)
     y = labels.view(-1)
     total = x.shape[0]

@@ -62,7 +62,7 @@ runconfig:
     epochs: 100000
     steps_per_epoch: 32
     train_batch_size: 4
-    eval_batch_size: 32
+    eval_batch_size: 4
     save_summary_epoch: 100
     save_checkpoints_epoch: 100
     keep_checkpoint_max: 2
@@ -72,7 +72,7 @@ runconfig:
     mode: 'train'
     eval_steps: 100
     valid: True
-    valid_only: False
+    valid_only: True
     valid_every: 20
     model_path: "checkpoints"
     save_as_new: False

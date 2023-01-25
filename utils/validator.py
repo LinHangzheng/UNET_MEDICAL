@@ -31,6 +31,7 @@ from torch.utils.data import Dataset, DataLoader
 
 from input import IRDataset
 from .metric import compute_acu
+from einops import rearrange
 class Validator(object):
     """Geometric validation; sample 3D points for distance/occupancy metrics."""
 
@@ -57,9 +58,9 @@ class Validator(object):
         for n_iter, data in enumerate(self.val_data_loader):
             images = data[0].to(self.device)
             labels = data[1].to(self.device)
-
-            pred = self.net(images)
-            val_dict['ACU'] += [compute_acu(pred, labels, num_classes)]*images.shape[0]
+            preds = self.net(images)
+            preds = rearrange(preds, 'b c h w -> (b h w) c')
+            val_dict['ACU'] += [compute_acu(preds, labels, num_classes)]*images.shape[0]
             total += images.shape[0]
         val_dict['ACU'] = np.sum(val_dict['ACU'],axis=0)/total
         for i in range(1, num_classes+1):

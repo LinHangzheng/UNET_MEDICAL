@@ -37,7 +37,7 @@ class SwinUnet(nn.Module):
                                 img_size=img_size,
                                 patch_size=patch_size,
                                 in_chans=in_chans,
-                                num_classes=in_chans,
+                                num_classes=num_classes,
                                 embed_dim=embed_dim,
                                 depths=depths,
                                 num_heads=num_heads,
