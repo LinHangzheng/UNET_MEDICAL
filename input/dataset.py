@@ -70,17 +70,17 @@ class IRDatasetProcessor(VisionDataset):
 
         # Using Faster Dataloader for mapstyle dataset.
 
-    def create_dataset(self, data_dir, is_training):
+    def create_dataset(self, is_training):
         split = "train" if is_training else "val"
         dataset = IRDataset(
-            root=data_dir,
+            root=self.data_dir,
             split=split,
             transforms=self.transform_image_and_mask
         )
         return dataset
 
-    def create_dataloader(self, data_dir, is_training=False):
-        dataset = self.create_dataset(data_dir, is_training)
+    def create_dataloader(self, is_training=False):
+        dataset = self.create_dataset(is_training)
         generator_fn = torch.Generator(device="cpu")
         if self.shuffle_seed is not None:
             generator_fn.manual_seed(self.shuffle_seed)

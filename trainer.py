@@ -156,7 +156,6 @@ class Trainer(object):
         #                                     shuffle=False, pin_memory=True, num_workers=0,sampler=sampler)
         self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.train_data_loader = self.DatasetProcessor.create_dataloader(
-                                    data_dir=self.data_dir,
                                     is_training=True)
         self.timer.check('create_dataloader')
         log.info("Loaded dataset")

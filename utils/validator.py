@@ -30,7 +30,6 @@ class Validator(object):
     def __init__(self, params, device, net):
         self.params = params
         self.num_class = params["train_input"]["num_classes"]
-        self.data_dir = params["train_input"]["data_dir"]
         self.device = device
         self.net = net
         self.set_dataset()
@@ -38,7 +37,6 @@ class Validator(object):
     def set_dataset(self):
         self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.val_data_loader = self.DatasetProcessor.create_dataloader(
-                                    data_dir=self.data_dir,
                                     is_training=False)
 
 
