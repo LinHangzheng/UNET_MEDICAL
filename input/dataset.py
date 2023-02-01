@@ -1,92 +1,193 @@
 import os
 import torch
-from torch.utils.data import Dataset
-import numpy as np
-from PIL import Image
+from torchvision import transforms
 from glob import glob
-
+from torchvision.datasets import VisionDataset
 from einops import rearrange
-import torchvision.transforms.functional as TF
-class IRDataset(Dataset):
-    def __init__(self, 
-        params=None, 
-        mode='train'
-    ):
-        self.mode = mode
-        self.params = params
-        self.data_dir = params["train_input"]["dataset_path"]
-        self.IR_channel_level = params["train_input"]["IR_channel_level"]
-        self.num_classes = params["train_input"]["num_classes"]
-        self.image_size = params["train_input"]["image_size"]
-        self.seed = params["train_input"].get("seed", None)
-        self.augment_data = params["train_input"]["augment_data"]
-        self.noise_variance = params["train_input"]["noise_variance"]
-        
-        if mode == 'train':
-            self.IR = sorted(glob(os.path.join(self.data_dir,'train','IR/*')))
-            self.label = sorted(glob(os.path.join(self.data_dir,'train','label/*')))
-        else:
-            self.IR = sorted(glob(os.path.join(self.data_dir,'test','IR/*')))
-            self.label = sorted(glob(os.path.join(self.data_dir,'test','label/*')))
-        
-        self.IR_patches = torch.from_numpy(np.array([np.load(path) for path in self.IR]).astype(np.float32))
-        self.label_patches = torch.from_numpy(np.array([np.load(path) for path in self.label]).astype(np.int64))
-        self.large_patch_size = self.IR_patches[0].shape[0]
-        
-        self.IR_patches = rearrange(self.IR_patches, 'b h w c -> b c h w')
-        
-        self.data_augmentation()
-        self.label_patches = torch.unsqueeze(self.label_patches, dim=1)
-        # for i in range(self.IR_patches.shape[0]):
-        #     angle = 360*torch.rand(1).item()
-        #     IR = TF.rotate(self.IR_patches[i], angle)
-        #     label = TF.rotate(self.label_patches[i], angle)
-        #     label = torch.squeeze(label, dim=0)/6*255
-        #     label = np.array(label).astype(np.uint8)
-        #     img = Image.fromarray(label)
-            
-        #     img.save(f"{self.mode}_label_{i}.jpg")
-        #     # IR = self.IR_patches[i][4] + (0.0001**0.5)*torch.randn(self.IR_patches[i][4].shape)
-        #     # img = Image.fromarray(np.array((IR-torch.min(IR))/torch.max(IR)*255,dtype=np.uint8))
-        #     # img.save(f"{self.mode}_IR_{i}.jpg")
-        #     img = Image.fromarray(np.array((IR[4]-torch.min(IR[4]))/torch.max(IR[4])*255).astype(np.uint8))
-        #     img.save(f"{self.mode}_IR_{i}_ori.jpg")
-        
+import torch.distributed as dist
+import numpy as np
+from .preprocessing_utils import (
+    adjust_brightness_transform,
+    rotation_90_transform,
+)
 
-    def data_augmentation(self):
-        if not self.augment_data:
-            return 
-        IR_flipx = torch.flip(self.IR_patches,[2])
-        label_flipx = torch.flip(self.label_patches,[1])
-        self.IR_patches = torch.concat([self.IR_patches,IR_flipx])
-        self.label_patches = torch.concat([self.label_patches,label_flipx])
-        
+class IRDataset(VisionDataset):
+    def __init__(
+        self, 
+        root, 
+        split='train',
+        transforms=None,
+        transform=None,
+        target_transform=None
+    ):
+        super(IRDataset, self).__init__(
+            root, transforms, transform, target_transform
+        )
+        self.split = split
+        self.root = root
+        self.IR = sorted(glob(os.path.join(self.root,split,'IR/*.npy')))
+        self.label = sorted(glob(os.path.join(self.root,split,'label/*.npy')))
         
     def __len__(self):
-        if self.mode =="train":
-            return self.IR_patches.shape[0]
-        else:
-            return self.IR_patches.shape[0]*4
+        return len(self.IR)
         
     def __getitem__(self, idx:int):
-        if self.mode == "train":
-            h,w = torch.randint(high=self.large_patch_size-self.image_size-1,size=(2,))
-            IR = self.IR_patches[idx][:,h:h+self.image_size,w:w+self.image_size]
-            # IR = IR + (self.noise_variance**0.5)*torch.randn(IR.shape)
-            label = self.label_patches[idx][:,h:h+self.image_size,w:w+self.image_size] 
-            
-            angle = 360*torch.rand(1).item()
-            IR = TF.rotate(IR, angle)
-            label = TF.rotate(label, angle)
-            label = torch.squeeze(label, dim=0)
-        else:
-            round = idx //self.IR_patches.shape[0]
-            idx = idx % self.IR_patches.shape[0] 
-            h = (self.large_patch_size-self.image_size)//2*(round//2)
-            w = (self.large_patch_size-self.image_size)//2*(round%2)
-            IR = self.IR_patches[idx][:,h:h+self.image_size,w:w+self.image_size]
-            label = self.label_patches[idx][:,h:h+self.image_size,w:w+self.image_size] 
-            label = torch.squeeze(label, dim=0)
-        return IR, label
-            
+        patch = torch.from_numpy(np.load(self.IR[idx]))
+        label = torch.from_numpy(np.load(self.label[idx]))
+        if self.transforms is not None:
+            patch, label = self.transforms(patch, label)
+        return patch, label
         
+class IRDatasetProcessor(VisionDataset):
+    def __init__(self, params):
+        self.params = params
+        self.data_dir = params["train_input"]["data_dir"]
+
+        self.num_classes = params["train_input"]["num_classes"]
+        self.large_patch_size = params["train_input"]["large_patch_size"]
+        self.image_shape = params["train_input"]["image_shape"]  # of format (H, W, C)
+        self.duplicate_act_worker_data = params["runconfig"].get(
+            "duplicate_act_worker_data", False
+        )
+
+        self.shuffle_seed = params["train_input"].get("shuffle_seed", None)
+        if self.shuffle_seed:
+            torch.manual_seed(self.shuffle_seed)
+
+        self.augment_data = params["train_input"].get("augment_data", True)
+        self.batch_size = params["train_input"]["batch_size"]
+        self.shuffle = params["train_input"].get("shuffle", True)
+
+        # Multi-processing params.
+        self.num_workers = params["train_input"].get("num_workers", 0)
+        self.drop_last = params["train_input"].get("drop_last", True)
+        self.prefetch_factor = params["train_input"].get("prefetch_factor", 10)
+        self.persistent_workers = params.get("persistent_workers", True)
+
+        self.mp_type = torch.LongTensor
+        # default is that each activation worker sends `num_workers`
+        # batches so total batch_size * num_act_workers * num_pytorch_workers samples
+
+        # Using Faster Dataloader for mapstyle dataset.
+
+    def create_dataset(self, data_dir, is_training):
+        split = "train" if is_training else "val"
+        dataset = IRDataset(
+            root=data_dir,
+            split=split,
+            transforms=self.transform_image_and_mask
+        )
+        return dataset
+
+    def create_dataloader(self, data_dir, is_training=False):
+        dataset = self.create_dataset(data_dir, is_training)
+        generator_fn = torch.Generator(device="cpu")
+        if self.shuffle_seed is not None:
+            generator_fn.manual_seed(self.shuffle_seed)
+
+        data_sampler = torch.utils.data.SequentialSampler(dataset)
+
+        if self.shuffle and is_training:
+            seed = self.shuffle_seed + dist.get_rank()
+            generator_fn.manual_seed(seed)
+            data_sampler = torch.utils.data.RandomSampler(
+                dataset, generator=generator_fn
+            )
+        else:
+            data_sampler = torch.utils.data.SequentialSampler(dataset)
+            
+        dataloader_fn = torch.utils.data.DataLoader
+        print("-- Using torch.utils.data.DataLoader -- ")
+
+        if self.num_workers:
+            dataloader = dataloader_fn(
+                dataset,
+                batch_size=self.batch_size,
+                num_workers=self.num_workers,
+                prefetch_factor=self.prefetch_factor,
+                persistent_workers=self.persistent_workers,
+                drop_last=self.drop_last,
+                generator=generator_fn,
+                sampler=data_sampler,
+            )
+        else:
+            dataloader = dataloader_fn(
+                dataset,
+                batch_size=self.batch_size,
+                drop_last=self.drop_last,
+                generator=generator_fn,
+                sampler=data_sampler,
+            )
+        return dataloader
+
+    def transform_image_and_mask(self, image, mask):
+        if self.augment_data:
+            do_horizontal_flip = torch.rand(size=(1,)).item() > 0.5
+            # n_rots in range [0, 3)
+            n_rotations = torch.randint(low=0, high=3, size=(1,)).item()
+
+            if self.large_patch_size[0] != self.large_patch_size[1]:  # H != W
+                # For a rectangle image
+                n_rotations = n_rotations * 2
+            h = torch.randint(high=self.large_patch_size[0]-self.image_shape[0]-1,size=(1,))
+            w = torch.randint(high=self.large_patch_size[1]-self.image_shape[1]-1,size=(1,))
+             
+            augment_transform_image = self.get_augment_transforms(
+                do_horizontal_flip=do_horizontal_flip,
+                n_rotations=n_rotations,
+                do_random_brightness=True,
+                crop_h=h,
+                crop_w=w,
+                image_height=self.image_shape[0],
+                image_width=self.image_shape[1]
+            )
+            augment_transform_mask = self.get_augment_transforms(
+                do_horizontal_flip=do_horizontal_flip,
+                n_rotations=n_rotations,
+                do_random_brightness=False,
+                crop_h=h,
+                crop_w=w,
+                image_height=self.image_shape[0],
+                image_width=self.image_shape[1]
+            )
+
+        image = augment_transform_image(image)
+        mask = augment_transform_mask(mask)
+
+        # Handle dtypes and mask shapes based on `loss_type`
+        # and `mixed_precsion`
+
+
+        mask = mask.type(self.mp_type)
+
+        return image, mask
+
+    def get_augment_transforms(
+        self, do_horizontal_flip, n_rotations, do_random_brightness, crop_h, crop_w, image_height, image_width
+    ):
+        augment_transforms_list = []
+        if do_horizontal_flip:
+            horizontal_flip_transform = transforms.Lambda(
+                lambda x: transforms.functional.hflip(x)
+            )
+            augment_transforms_list.append(horizontal_flip_transform)
+
+        if n_rotations > 0:
+            rotation_transform = transforms.Lambda(
+                lambda x: rotation_90_transform(x, num_rotations=n_rotations)
+            )
+            augment_transforms_list.append(rotation_transform)
+            
+        if do_random_brightness:
+            brightness_transform = transforms.Lambda(
+                lambda x: adjust_brightness_transform(x, p=0.5, delta=0.2)
+            )
+            augment_transforms_list.append(brightness_transform)
+            
+        if image_height is not None:
+            crop_transform = transforms.Lambda(
+                lambda x: transforms.functional.crop(x, top=crop_h, left=crop_w, height=image_height, width=image_width)
+            )
+            augment_transforms_list.append(crop_transform)
+            
+        return transforms.Compose(augment_transforms_list)

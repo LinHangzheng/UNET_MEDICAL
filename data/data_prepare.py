@@ -1,44 +1,50 @@
 import os
 import h5py
+import torch
 import numpy as np
-from PIL import Image
+import torchvision.transforms as T
+
 import shutil
 def normolize(IR):
-    negative_pos = np.where(IR<0)
+    negative_pos = torch.where(IR<0)
     IR[negative_pos] = 0
-    IR = IR/np.max(IR)
+    IR = IR/torch.max(IR)
     return IR
 
 def data_plot(label):
-    img = Image.fromarray(np.array(label/6*255,dtype=np.uint8))
+    to_image_transforms = T.ToPILImage()
+    img = (label/6*255).to(torch.uint8)
+    img = to_image_transforms(img)
     
     img.save("label.jpg")
-    pos = { 0 : np.where(label==0),
-            1 : np.where(label==1),
-            2 : np.where(label==2),
-            3 : np.where(label==3),
-            4 : np.where(label==4),
-            5 : np.where(label==5),
-            6 : np.where(label==6)}
+    pos = { 0 : torch.where(label==0),
+            1 : torch.where(label==1),
+            2 : torch.where(label==2),
+            3 : torch.where(label==3),
+            4 : torch.where(label==4),
+            5 : torch.where(label==5),
+            6 : torch.where(label==6)}
     for i in range(7):
         label = label*0
         label[pos[i]] = 255
-        img = Image.fromarray(np.array(label,dtype=np.uint8))
+        img = to_image_transforms(label.to(torch.uint8))
         img.save(f"label{i+1}.jpg")  
     return
 
 def save_data(IR, label, patches, img_size, folder):
     for i, pt in enumerate(patches):
-        IR_patch = IR[pt[1]:pt[1]+img_size,pt[0]:pt[0]+img_size,:]
+        IR_patch = IR[:,pt[1]:pt[1]+img_size,pt[0]:pt[0]+img_size]
         Label_patch = label[pt[1]:pt[1]+img_size,pt[0]:pt[0]+img_size]
+        np.save(os.path.join(folder, 'IR', f'IR_{i}'),np.array(IR_patch))
+        np.save(os.path.join(folder, 'label', f'label_{i}'),np.array(Label_patch))
         
-        with open(os.path.join(folder, 'IR', f'IR_{i}'), 'wb') as f1, \
-            open(os.path.join(folder, 'label', f'label_{i}'), 'wb') as f2:
-            np.save(f1, IR_patch)
-            np.save(f2, Label_patch)
-        img = Image.fromarray(np.array(IR_patch[:,:,0]/np.max(IR_patch[:,:,0])*255, dtype=np.uint8))
+        to_image_transforms = T.ToPILImage()
+        IR_patch = (IR_patch[0,:,:]/torch.max(IR_patch[0,:,:])*255).to(torch.uint8)
+        Label_patch = (Label_patch/6*255).to(torch.uint8)
+        
+        img = to_image_transforms(IR_patch)
         img.save(os.path.join(folder, 'IR', f'IR_{i}.jpeg'))
-        img = Image.fromarray(np.array(Label_patch/7*255, dtype=np.uint8))
+        img = to_image_transforms(Label_patch)
         img.save(os.path.join(folder, 'label', f'label_{i}.jpeg'))
         
 def create_folder(path):
@@ -51,15 +57,14 @@ def create_folder(path):
 if __name__ == "__main__":
     data_dir = './'
     train_folder = './train'
-    test_folder = './test'
+    test_folder = './val'
     create_folder(train_folder)
     create_folder(test_folder)
         
         
-    IR = np.array(h5py.File(os.path.join(data_dir,'IR.mat'), 'r')['X'])
+    IR = torch.from_numpy(np.array(h5py.File(os.path.join(data_dir,'IR.mat'), 'r')['X']))
     IR = normolize(IR)  
-    label = np.array(h5py.File(os.path.join(data_dir,'Class.mat'), 'r')['CL'])  # [H, W]
-    IR = np.moveaxis(IR, 0, -1) # [H, W, C]
+    label = torch.from_numpy(np.array(h5py.File(os.path.join(data_dir,'Class.mat'), 'r')['CL']))  # [H, W]
     img_size = 250
     train_test_split = 0.8
     with open("cell_centers.txt", "r") as f:
@@ -68,8 +73,10 @@ if __name__ == "__main__":
         patches = []
         for pt in pts:
             for i in range(4):
-                patches.append([int(float(pt[0])) - img_size*(i%2), int(float(pt[1])) - img_size*(i//2)])
-        np.random.shuffle(patches)
+                patches.append([float(pt[0]) - img_size*(i%2), float(pt[1]) - img_size*(i//2)])
+        # shuffle
+        patches = torch.Tensor(patches).to(torch.int32)
+        patches=patches[torch.randperm(len(patches))].view(patches.size())
         patches_train = patches[:int(len(patches)*train_test_split)]
         patches_test = patches[int(len(patches)*train_test_split):]
         

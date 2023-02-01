@@ -19,16 +19,23 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    dataset_path: 'data' # Place to store data
-
+    data_dir: 'data' # Place to store data
+    shuffle: True
+    shuffle_seed: 1
     num_parallel_calls: 0   # 0 means AUTOTUNE
     train_test_split: 0.79
     num_classes: 7
     # IR_threshould: 0.18
-    image_size: 96 #128
+    image_shape: [96,96] #128
+    large_patch_size: [250,250]
     dataset: "IR_dataset"
     IR_channel_level: 19 # up to 19
     noise_variance: 0
+    augment_data: True
+    batch_size: 4
+    num_workers: 0
+    drop_last: True
+    prefetch_factor: 10
 
 model:
     classes_num: 7
@@ -47,13 +54,11 @@ optimizer:
 
 
 runconfig:
-    logs: './checkpoints/UNet'
-    model_type: "UNet" #UNet GeneratorUNet
+    logs: './checkpoints/GeneratorUNet'
+    model_type: "GeneratorUNet" #UNet GeneratorUNet
     pretrained: False
     pretrained_from_DDP: True
     epochs: 100000
-    train_batch_size: 32
-    eval_batch_size: 32
     save_summary_epoch: 100
     save_checkpoints_epoch: 100
     keep_checkpoint_max: 2
@@ -66,3 +71,4 @@ runconfig:
     model_path: "checkpoints/GeneratorUNet"
     save_as_new: False
     world_size: 1
+    duplicate_act_worker_data: True

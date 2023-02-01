@@ -5,17 +5,16 @@ import torch
 import torch.optim as optim
 from model import *
 from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import Dataset, DataLoader
-from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 from utils import PerfTimer, Validator, compute_acu
-from input import IRDataset
+from input import IRDatasetProcessor
 import torch.distributed as dist
 from collections import OrderedDict
 import numpy as np
 import wandb
 from einops import rearrange
 from PIL import Image
+
 class Trainer(object):
     """
     Base class for the trainer.
@@ -56,10 +55,10 @@ class Trainer(object):
         # multiprocessing.set_start_method('spawn')
 
         self.params = params 
-        self.data_dir = params["train_input"]["dataset_path"]
+        self.data_dir = params["train_input"]["data_dir"]
         self.IR_channel_level = params["train_input"]["IR_channel_level"]
         self.num_classes = params["train_input"]["num_classes"]
-        self.image_size = params["train_input"]["image_size"]
+        self.image_shape = params["train_input"]["image_shape"]
         
         self.optimizer = params["optimizer"]["optimizer_type"]
         self.lr = params["optimizer"]["lr"]
@@ -69,7 +68,7 @@ class Trainer(object):
         self.pretrained = params['runconfig']['pretrained']
         self.pretrained_from_DDP = params["runconfig"]["pretrained_from_DDP"]
         self.logs = params["runconfig"]["logs"]
-        self.batch = params["runconfig"]["train_batch_size"]
+        self.batch = params["train_input"]["batch_size"]
         self.valid = params["runconfig"]["valid"]
         self.valid_only = params["runconfig"]["valid_only"]
         self.epochs = params["runconfig"]["epochs"]
@@ -124,12 +123,12 @@ class Trainer(object):
         
     def set_wandb(self):
         if self.rank ==0:
-            wandb.init(project="holli", entity="color-recon")#,mode="disabled"
+            wandb.init(project="holli", entity="hangzheng",mode="disabled")#,mode="disabled"
             wandb.config.update = {
                 "learning_rate": self.lr,
                 "epochs": self.epochs,
                 "batch_size": self.batch,
-                "image_size":self.image_size,
+                "image_shape":self.image_shape,
                 "weight_decay_rate":self.weight_decay_rate,
                 "world_size": self.world_size,
                 "device_name": self.device_name,
@@ -145,16 +144,20 @@ class Trainer(object):
         
         The code uses the mesh dataset by default, unless --analytic is specified in CLI.
         """
-        self.train_dataset = IRDataset(self.params, self.mode)
-        sampler = DistributedSampler(self.train_dataset,
-                                    num_replicas=self.world_size, 
-                                    rank=self.rank, 
-                                    shuffle=False, 
-                                    drop_last=False)
-        log.info("Dataset Size: {}".format(len(self.train_dataset)))
+        # self.train_dataset = IRDataset(self.params, self.mode)
+        # sampler = DistributedSampler(self.train_dataset,
+        #                             num_replicas=self.world_size, 
+        #                             rank=self.rank, 
+        #                             shuffle=False, 
+        #                             drop_last=False)
+        # log.info("Dataset Size: {}".format(len(self.train_dataset)))
         
-        self.train_data_loader = DataLoader(self.train_dataset, batch_size=self.batch, 
-                                            shuffle=False, pin_memory=True, num_workers=0,sampler=sampler)
+        # self.train_data_loader = DataLoader(self.train_dataset, batch_size=self.batch, 
+        #                                     shuffle=False, pin_memory=True, num_workers=0,sampler=sampler)
+        self.DatasetProcessor = IRDatasetProcessor(self.params)
+        self.train_data_loader = self.DatasetProcessor.create_dataloader(
+                                    data_dir=self.data_dir,
+                                    is_training=True)
         self.timer.check('create_dataloader')
         log.info("Loaded dataset")
             
@@ -170,12 +173,12 @@ class Trainer(object):
         elif self.model_type == 'Segmenter':
             model_cfg = self.params['model'].copy()
             model_cfg.update(self.params['vit'][model_cfg['backbone']])
-            model_cfg['image_size'] = (self.image_size, self.image_size)
+            model_cfg['image_size'] = self.image_shape
             model_cfg['channels'] = self.IR_channel_level
             self.net = create_segmenter(model_cfg)
         elif self.model_type == 'UNETR':
             params_model = self.params['model']
-            self.net = UNETR(img_shape=(self.image_size, self.image_size), 
+            self.net = UNETR(img_shape=self.image_shape, 
                              input_dim=self.IR_channel_level, 
                              output_dim=self.num_classes, 
                              embed_dim=params_model['embed_dim'], 
@@ -184,7 +187,7 @@ class Trainer(object):
                              dropout=params_model['dropout'])
         elif self.model_type == 'SwinUNet':
             params_model = self.params['model']
-            self.net = SwinUnet(img_size=self.image_size,
+            self.net = SwinUnet(img_size=self.image_shape[0],
                                 num_classes=self.num_classes,
                                 patch_size=params_model['patch_size'],
                                 in_chans=self.IR_channel_level,
@@ -272,7 +275,7 @@ class Trainer(object):
         Override this if there is a need to override the dataset iteration.
         """
         # if we are using DistributedSampler, we have to tell it which epoch this is
-        self.train_data_loader.sampler.set_epoch(epoch) 
+        # self.train_data_loader.sampler.set_epoch(epoch) 
         for n_iter, data in enumerate(self.train_data_loader):
             """
             Override this function to change the per-iteration behaviour.
