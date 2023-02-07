@@ -72,7 +72,7 @@ runconfig:
     mode: 'train'
     eval_steps: 100
     valid: True
-    valid_only: True
+    valid_only: False
     valid_every: 20
     model_path: "checkpoints"
     save_as_new: False
