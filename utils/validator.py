@@ -19,17 +19,9 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import os
-import sys
-import itertools as it
-
 import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
 
-from input import IRDataset
+from input import IRDatasetProcessor
 from .metric import compute_acu
 from einops import rearrange
 class Validator(object):
@@ -37,19 +29,19 @@ class Validator(object):
 
     def __init__(self, params, device, net):
         self.params = params
+        self.num_class = params["train_input"]["num_classes"]
         self.device = device
         self.net = net
         self.set_dataset()
 
     def set_dataset(self):
-        self.val_dataset = IRDataset(self.params, "eval")
-        self.val_data_loader = DataLoader(self.val_dataset, batch_size=self.params["runconfig"]["eval_batch_size"], 
-                                            shuffle=False, pin_memory=True, num_workers=4)
+        self.DatasetProcessor = IRDatasetProcessor(self.params)
+        self.val_data_loader = self.DatasetProcessor.create_dataloader(
+                                    is_training=False)
 
 
     def validate(self, epoch):
         """Geometric validation; sample surface points."""
-        num_classes = self.params["train_input"]["num_classes"]
         val_dict = {}
         val_dict['ACU'] = []
         
@@ -60,10 +52,10 @@ class Validator(object):
             labels = data[1].to(self.device)
             preds = self.net(images)
             preds = rearrange(preds, 'b c h w -> (b h w) c')
-            val_dict['ACU'] += [compute_acu(preds, labels, num_classes)]*images.shape[0]
+            val_dict['ACU'] += [compute_acu(preds, labels, self.num_class)]*images.shape[0]
             total += images.shape[0]
         val_dict['ACU'] = np.sum(val_dict['ACU'],axis=0)/total
-        for i in range(1, num_classes+1):
+        for i in range(1, self.num_class+1):
             val_dict[f'ACU_{i}'] = val_dict['ACU'][i-1]
         val_dict['ACU'] = val_dict['ACU'][-1]
         return val_dict

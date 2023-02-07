@@ -19,14 +19,22 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    dataset_path: 'data' # Place to store data
+    data_dir: 'data' # Place to store data
+    shuffle: True
+    shuffle_seed: 1
     num_parallel_calls: 0   # 0 means AUTOTUNE
-    # num_parallel_reads: 16
-    num_classes: 7
-    image_size: 224 #128
+    train_test_split: 0.79
+    num_classes: 11
+    # IR_threshould: 0.18
+    image_shape: [384,384] #128
     dataset: "IR_dataset"
-    IR_channel_level: 19 # up to 19     
+    IR_channel_level: 17 # up to 19
     noise_variance: 0
+    augment_data: True
+    batch_size: 4
+    num_workers: 0
+    drop_last: True
+    prefetch_factor: 10
 
 model:
     embed_dim: 768
@@ -76,3 +84,4 @@ runconfig:
     model_path: "checkpoints"
     save_as_new: False
     world_size: 1
+    duplicate_act_worker_data: True
