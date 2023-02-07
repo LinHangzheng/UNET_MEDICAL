@@ -24,12 +24,12 @@ train_input:
     shuffle_seed: 1
     num_parallel_calls: 0   # 0 means AUTOTUNE
     train_test_split: 0.79
-    num_classes: 7
+    num_classes: 11
     # IR_threshould: 0.18
     image_shape: [96,96] #128
     large_patch_size: [250,250]
     dataset: "IR_dataset"
-    IR_channel_level: 19 # up to 19
+    IR_channel_level: 17 # up to 19 for small dataset and 17 for large
     noise_variance: 0
     augment_data: True
     batch_size: 4

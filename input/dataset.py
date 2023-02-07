@@ -44,7 +44,6 @@ class IRDatasetProcessor(VisionDataset):
         self.data_dir = params["train_input"]["data_dir"]
 
         self.num_classes = params["train_input"]["num_classes"]
-        self.large_patch_size = params["train_input"]["large_patch_size"]
         self.image_shape = params["train_input"]["image_shape"]  # of format (H, W, C)
         self.duplicate_act_worker_data = params["runconfig"].get(
             "duplicate_act_worker_data", False
@@ -64,7 +63,7 @@ class IRDatasetProcessor(VisionDataset):
         self.prefetch_factor = params["train_input"].get("prefetch_factor", 10)
         self.persistent_workers = params.get("persistent_workers", True)
 
-        self.mp_type = torch.LongTensor
+        self.mp_type = torch.float32
         # default is that each activation worker sends `num_workers`
         # batches so total batch_size * num_act_workers * num_pytorch_workers samples
 
@@ -121,16 +120,17 @@ class IRDatasetProcessor(VisionDataset):
         return dataloader
 
     def transform_image_and_mask(self, image, mask):
+        # image: [C, H, W]
         if self.augment_data:
             do_horizontal_flip = torch.rand(size=(1,)).item() > 0.5
             # n_rots in range [0, 3)
             n_rotations = torch.randint(low=0, high=3, size=(1,)).item()
 
-            if self.large_patch_size[0] != self.large_patch_size[1]:  # H != W
+            if self.image_shape[0] != self.image_shape[1]:  # H != W
                 # For a rectangle image
                 n_rotations = n_rotations * 2
-            h = torch.randint(high=self.large_patch_size[0]-self.image_shape[0]-1,size=(1,))
-            w = torch.randint(high=self.large_patch_size[1]-self.image_shape[1]-1,size=(1,))
+            h = torch.randint(high=image.shape[1]-self.image_shape[0]-1,size=(1,))
+            w = torch.randint(high=image.shape[2]-self.image_shape[1]-1,size=(1,))
              
             augment_transform_image = self.get_augment_transforms(
                 do_horizontal_flip=do_horizontal_flip,
@@ -158,7 +158,7 @@ class IRDatasetProcessor(VisionDataset):
         # and `mixed_precsion`
 
 
-        mask = mask.type(self.mp_type)
+        image = image.type(self.mp_type)
 
         return image, mask
 
@@ -166,6 +166,12 @@ class IRDatasetProcessor(VisionDataset):
         self, do_horizontal_flip, n_rotations, do_random_brightness, crop_h, crop_w, image_height, image_width
     ):
         augment_transforms_list = []
+        if image_height is not None:
+            crop_transform = transforms.Lambda(
+                lambda x: transforms.functional.crop(x, top=crop_h, left=crop_w, height=image_height, width=image_width)
+            )
+            augment_transforms_list.append(crop_transform)
+            
         if do_horizontal_flip:
             horizontal_flip_transform = transforms.Lambda(
                 lambda x: transforms.functional.hflip(x)
@@ -183,11 +189,5 @@ class IRDatasetProcessor(VisionDataset):
                 lambda x: adjust_brightness_transform(x, p=0.5, delta=0.2)
             )
             augment_transforms_list.append(brightness_transform)
-            
-        if image_height is not None:
-            crop_transform = transforms.Lambda(
-                lambda x: transforms.functional.crop(x, top=crop_h, left=crop_w, height=image_height, width=image_width)
-            )
-            augment_transforms_list.append(crop_transform)
             
         return transforms.Compose(augment_transforms_list)
