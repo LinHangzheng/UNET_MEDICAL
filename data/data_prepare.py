@@ -6,6 +6,7 @@ import shutil
 import numpy as np
 from glob import glob
 from PIL import Image as im
+from tqdm import tqdm
 
 def normolize(IR):
     negative_pos = np.where(IR<0)
@@ -47,7 +48,7 @@ def save_small_data(IR, label, patches, img_size, folder, plot=True):
                        plot)
         
 def save_large_data(IR_files, folder, plot=True):
-    for i, IR_file in enumerate(IR_files):
+    for i, IR_file in enumerate(tqdm(IR_files)):
         folder_name = IR_file.split('/')[-2]
         idx = IR_file.split('/')[-1].split('.')[0]
         IR = scipy.io.loadmat(IR_file)['IR']
@@ -130,11 +131,11 @@ def prepare_large_data(large_IR_files,
     save_large_data(patches_test, test_folder, plot)
 
 if __name__ == "__main__":
-    data_dir = './'
-    train_folder = './train'
-    test_folder = './val'
-    plot = True
-    large_IR_files = sorted(glob("/home/hangzheng/tissue_segmentation/data/IR/*/*"))
+    data_dir = '/raid/projects/hangzheng'
+    train_folder = '/raid/projects/hangzheng/train'
+    test_folder = '/raid/projects/hangzheng/val'
+    plot = False
+    large_IR_files = sorted(glob("/raid/projects/hangzheng/IR/*/*"))
     
     small_img_size = 500
     train_test_split = 0.8

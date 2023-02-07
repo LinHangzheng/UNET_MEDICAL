@@ -54,7 +54,8 @@ class Trainer(object):
         #torch.multiprocessing.set_start_method('spawn')
         # multiprocessing.set_start_method('spawn')
 
-        self.params = params 
+        self.params = params
+        self.wandb = params["wandb"] 
         self.data_dir = params["train_input"]["data_dir"]
         self.IR_channel_level = params["train_input"]["IR_channel_level"]
         self.num_classes = params["train_input"]["num_classes"]
@@ -68,8 +69,8 @@ class Trainer(object):
         self.pretrained = params['runconfig']['pretrained']
         self.pretrained_from_DDP = params["runconfig"]["pretrained_from_DDP"]
         self.logs = params["runconfig"]["logs"]
-        self.batch = params["train_input"]["batch_size"]
         self.valid = params["runconfig"]["valid"]
+        self.train_batch_size = params["runconfig"]["train_batch_size"]
         self.valid_only = params["runconfig"]["valid_only"]
         self.epochs = params["runconfig"]["epochs"]
         self.save_checkpoints_epoch = params["runconfig"]["save_checkpoints_epoch"]
@@ -123,11 +124,11 @@ class Trainer(object):
         
     def set_wandb(self):
         if self.rank ==0:
-            wandb.init(project="holli", entity="hangzheng",mode="disabled")#,mode="disabled"
+            wandb.init(project="holli", entity="hangzheng", mode=None if self.wandb else "disabled" ) #,mode="disabled"
             wandb.config.update = {
                 "learning_rate": self.lr,
                 "epochs": self.epochs,
-                "batch_size": self.batch,
+                "batch_size": self.train_batch_size,
                 "image_shape":self.image_shape,
                 "weight_decay_rate":self.weight_decay_rate,
                 "world_size": self.world_size,

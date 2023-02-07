@@ -14,7 +14,8 @@ log.basicConfig(format='[%(asctime)s] [INFO] %(message)s',
 options = parse_options()
 with open(options.configs, 'r') as file:
     args = yaml.safe_load(file)
-        
+    args.update({'wandb':options.wandb})
+   
 def main(rank):
     trainer = Trainer(rank, args)
     trainer.train()
