@@ -47,13 +47,16 @@ class Validator(object):
         
         total = 0
         # Uniform points metrics
+        
         for n_iter, data in enumerate(self.val_data_loader):
             images = data[0].to(self.device)
             labels = data[1].to(self.device)
+            
             preds = self.net(images)
             preds = rearrange(preds, 'b c h w -> (b h w) c')
             val_dict['ACU'] += [compute_acu(preds, labels, self.num_class)]*images.shape[0]
             total += images.shape[0]
+        
         val_dict['ACU'] = np.sum(val_dict['ACU'],axis=0)/total
         for i in range(1, self.num_class+1):
             val_dict[f'ACU_{i}'] = val_dict['ACU'][i-1]

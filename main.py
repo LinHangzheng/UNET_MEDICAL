@@ -4,8 +4,6 @@ import torch.multiprocessing as mp
 from trainer import Trainer
 import os
 from configs import parse_options
-os.environ["OMP_NUM_THREADS"] = "1" 
-os.environ["MKL_NUM_THREADS"] = "1" 
 # Set logger display format
 log.basicConfig(format='[%(asctime)s] [INFO] %(message)s', 
                 datefmt='%d/%m %H:%M:%S',
@@ -14,7 +12,8 @@ log.basicConfig(format='[%(asctime)s] [INFO] %(message)s',
 options = parse_options()
 with open(options.configs, 'r') as file:
     args = yaml.safe_load(file)
-    args.update({'wandb':options.wandb})
+    args.update({"wandb":options.wandb,
+                 "ip":options.ip})
    
 def main(rank):
     trainer = Trainer(rank, args)
