@@ -4,8 +4,8 @@ import torch.multiprocessing as mp
 from trainer import Trainer
 import os
 from configs import parse_options
-os.environ["OMP_NUM_THREADS"] = "1" 
-os.environ["MKL_NUM_THREADS"] = "1" 
+# os.environ["OMP_NUM_THREADS"] = "1" 
+# os.environ["MKL_NUM_THREADS"] = "1" 
 # Set logger display format
 log.basicConfig(format='[%(asctime)s] [INFO] %(message)s', 
                 datefmt='%d/%m %H:%M:%S',

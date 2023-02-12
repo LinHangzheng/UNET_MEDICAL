@@ -26,8 +26,7 @@ train_input:
     train_test_split: 0.79
     num_classes: 11
     # IR_threshould: 0.18
-    image_shape: [96,96] #128
-    large_patch_size: [250,250]
+    image_shape: [224,224] #128
     dataset: "IR_dataset"
     IR_channel_level: 17 # up to 19 for small dataset and 17 for large
     noise_variance: 0

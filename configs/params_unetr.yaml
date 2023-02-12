@@ -19,14 +19,14 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    data_dir: '/raid/projects/hangzheng/data/' # Place to store data
+    data_dir: 'data' # Place to store data
     shuffle: True
     shuffle_seed: 1
     num_parallel_calls: 0   # 0 means AUTOTUNE
     train_test_split: 0.79
     num_classes: 11
     # IR_threshould: 0.18
-    image_shape: [384,384] #128
+    image_shape: [96,96] #128
     dataset: "IR_dataset"
     IR_channel_level: 17 # up to 19
     noise_variance: 0
@@ -63,12 +63,12 @@ optimizer:
 
 runconfig:
     model_type: "UNETR"
-    logs: 'raid/projects/hangzheng/checkpoints/UNETR'
+    logs: 'checkpoints/UNETR'
     pretrained: False
     pretrained_from_DDP: True
     epochs: 100000
-    train_batch_size: 32
-    eval_batch_size: 32
+    train_batch_size: 2
+    eval_batch_size: 2
     save_summary_epoch: 100
     save_checkpoints_epoch: 100
     keep_checkpoint_max: 2
@@ -80,7 +80,7 @@ runconfig:
     valid: True
     valid_only: False
     valid_every: 20
-    model_path: "raid/projects/hangzheng/checkpoints"
+    model_path: "checkpoints"
     save_as_new: False
     world_size: 1
     duplicate_act_worker_data: True

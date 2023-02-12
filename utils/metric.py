@@ -17,6 +17,8 @@ def compute_acu(pre, labels, num_classes, only_total=False):
         TN = torch.where((x!=c) & (y!=c))[0].shape[0]
         auc = 100. * (TP+TN)/total 
         ret.append(auc)    
+    
+    # ROC curve
         
     
     ret.append(auc_total)
