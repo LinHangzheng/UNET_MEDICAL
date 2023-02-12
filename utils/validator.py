@@ -22,7 +22,7 @@
 import torch 
 
 from input import IRDatasetProcessor
-from .metric import compute_acu, compute_auc
+from .metric import compute_acu, compute_auc, plot_roc
 from einops import rearrange
 class Validator(object):
     """Geometric validation; sample 3D points for distance/occupancy metrics."""
@@ -30,6 +30,7 @@ class Validator(object):
     def __init__(self, params, device, net):
         self.params = params
         self.num_class = params["train_input"]["num_classes"]
+        self.valid_only = params["runconfig"]["valid_only"]
         self.device = device
         self.net = net
         self.set_dataset()
@@ -67,6 +68,8 @@ class Validator(object):
             val_dict[f'AUC_{i+1}'] = val_dict['AUC'][i]
         val_dict['ACU'] = val_dict['ACU'][-1]
         val_dict['AUC'] = torch.mean(val_dict['AUC'])
+        if self.valid_only:
+            plot_roc(preds,labels,self.num_class,"ROC_figure.jpg")
         return val_dict
 
     
