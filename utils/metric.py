@@ -40,7 +40,6 @@ def plot_roc(pre, labels, num_classes, save_path, thresholds=None):
     for i in range(num_classes):
         plt.plot(fpr[i].cpu(),tpr[i].cpu(),color=slicedCM[i],label=f"ROC_{i+1}")
     plt.title('ROC')
-    plt.title()
     plt.xlabel("True Postive Rate")
     plt.ylabel("False Postive Rate")
     
