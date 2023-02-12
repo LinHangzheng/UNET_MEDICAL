@@ -1,5 +1,10 @@
 import torch
+from torchmetrics.classification import MulticlassAUROC, MulticlassROC
+import matplotlib.pyplot as plt
 
+COLOR_MAPS = ['Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+              'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
+              'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
 def compute_acu(pre, labels, num_classes, only_total=False):
     x = pre
     x = torch.argmax(x,dim=1)
@@ -18,8 +23,23 @@ def compute_acu(pre, labels, num_classes, only_total=False):
         auc = 100. * (TP+TN)/total 
         ret.append(auc)    
     
-    # ROC curve
-        
     
     ret.append(auc_total)
+    ret = torch.Tensor(ret)
     return ret
+
+def compute_auc(pre, labels, num_classes, average=None, thresholds=None):
+    y = labels.view(-1)
+    mc_auroc = MulticlassAUROC(num_classes=num_classes, average=average, thresholds=thresholds)
+    return mc_auroc(pre, y)
+
+def plot_roc(pre, labels, num_classes, save_path, thresholds=None):
+    metric = MulticlassROC(num_classes=num_classes, thresholds=thresholds)
+    fpr, tpr, thresholds = metric(pre, labels)
+    fig = plt.figure()
+    for i in range(num_classes):
+        plt.plot(fpr,tpr,color=COLOR_MAPS[i])
+    plt.title('ROC')
+    plt.title()
+    plt.savefig('ROC_figure.jpg')
+    

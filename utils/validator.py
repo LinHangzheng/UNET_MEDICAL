@@ -19,10 +19,10 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import numpy as np
+import torch 
 
 from input import IRDatasetProcessor
-from .metric import compute_acu
+from .metric import compute_acu, compute_auc
 from einops import rearrange
 class Validator(object):
     """Geometric validation; sample 3D points for distance/occupancy metrics."""
@@ -44,7 +44,7 @@ class Validator(object):
         """Geometric validation; sample surface points."""
         val_dict = {}
         val_dict['ACU'] = []
-        
+        val_dict['AUC'] = []
         total = 0
         # Uniform points metrics
         
@@ -55,12 +55,18 @@ class Validator(object):
             preds = self.net(images)
             preds = rearrange(preds, 'b c h w -> (b h w) c')
             val_dict['ACU'] += [compute_acu(preds, labels, self.num_class)]*images.shape[0]
+            val_dict['AUC'] += [compute_auc(preds, labels, self.num_class)]*images.shape[0]
             total += images.shape[0]
+        val_dict['ACU'] = torch.stack(val_dict['ACU'])
+        val_dict['AUC'] = torch.stack(val_dict['AUC'])
         
-        val_dict['ACU'] = np.sum(val_dict['ACU'],axis=0)/total
-        for i in range(1, self.num_class+1):
-            val_dict[f'ACU_{i}'] = val_dict['ACU'][i-1]
+        val_dict['ACU'] = torch.sum(val_dict['ACU'],axis=0)/total
+        val_dict['AUC'] = torch.sum(val_dict['AUC'],axis=0)/total
+        for i in range(self.num_class):
+            val_dict[f'ACU_{i+1}'] = val_dict['ACU'][i]
+            val_dict[f'AUC_{i+1}'] = val_dict['AUC'][i]
         val_dict['ACU'] = val_dict['ACU'][-1]
+        val_dict['AUC'] = torch.mean(val_dict['AUC'])
         return val_dict
 
     

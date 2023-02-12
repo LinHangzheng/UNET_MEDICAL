@@ -19,7 +19,7 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    data_dir: '/raid/projects/hangzheng/data' # Place to store data
+    data_dir: '/home/hangzheng/tissue_segmentation/data' # Place to store data
     shuffle: True
     shuffle_seed: 1
     num_parallel_calls: 0   # 0 means AUTOTUNE
@@ -31,7 +31,7 @@ train_input:
     IR_channel_level: 17 # up to 19
     noise_variance: 0
     augment_data: True
-    batch_size: 64
+    batch_size: 1
     num_workers: 0
     drop_last: False
     prefetch_factor: 10
@@ -53,9 +53,9 @@ optimizer:
 
 
 runconfig:
-    logs: '/raid/projects/hangzheng/checkpoints/UNet'
+    logs: 'checkpoints/UNet'
     model_type: "UNet" #UNet GeneratorUNet
-    pretrained: '/raid/projects/hangzheng/checkpoints/GeneratorUNet/20230207-015227.pth'
+    pretrained: False
     pretrained_from_DDP: True
     epochs: 100000
     save_summary_epoch: 100
@@ -65,9 +65,9 @@ runconfig:
     multireplica: False
     mode: 'train'
     valid: True
-    valid_only: False
+    valid_only: True
     valid_every: 20
-    model_path: "/raid/projects/hangzheng/checkpoints/GeneratorUNet"
+    model_path: "checkpoints/UNet"
     save_as_new: False
     world_size: 1
     duplicate_act_worker_data: True
