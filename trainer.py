@@ -56,21 +56,23 @@ class Trainer(object):
 
         self.params = params
         self.wandb = params["wandb"] 
+        self.ip = params["ip"]
         self.data_dir = params["train_input"]["data_dir"]
         self.IR_channel_level = params["train_input"]["IR_channel_level"]
         self.num_classes = params["train_input"]["num_classes"]
         self.image_shape = params["train_input"]["image_shape"]
-        
+        self.batch_size = params["train_input"]["batch_size"]
+
         self.optimizer = params["optimizer"]["optimizer_type"]
         self.lr = params["optimizer"]["lr"]
         self.weight_decay_rate = float(params["optimizer"]["weight_decay_rate"])
-        
+        self.epsilon = float(params["optimizer"]["epsilon"])
+
         self.model_type = params['runconfig']['model_type']
         self.pretrained = params['runconfig']['pretrained']
         self.pretrained_from_DDP = params["runconfig"]["pretrained_from_DDP"]
         self.logs = params["runconfig"]["logs"]
         self.valid = params["runconfig"]["valid"]
-        self.train_batch_size = params["runconfig"]["train_batch_size"]
         self.valid_only = params["runconfig"]["valid_only"]
         self.epochs = params["runconfig"]["epochs"]
         self.save_checkpoints_epoch = params["runconfig"]["save_checkpoints_epoch"]
@@ -119,16 +121,16 @@ class Trainer(object):
     def set_process(self,rank, world_size):
         
         os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12385'
+        os.environ['MASTER_PORT'] = self.ip
         dist.init_process_group("nccl", rank=rank, world_size=world_size)
         
     def set_wandb(self):
         if self.rank ==0:
-            wandb.init(project="holli", entity="hangzheng", mode=None if self.wandb else "disabled" ) #,mode="disabled"
+            wandb.init(name=self.wandb, project="holli", entity="hangzheng", mode=None if self.wandb else "disabled" ) #,mode="disabled"
             wandb.config.update = {
                 "learning_rate": self.lr,
                 "epochs": self.epochs,
-                "batch_size": self.train_batch_size,
+                "batch_size": self.batch_size,
                 "image_shape":self.image_shape,
                 "weight_decay_rate":self.weight_decay_rate,
                 "world_size": self.world_size,
@@ -159,7 +161,7 @@ class Trainer(object):
         self.train_data_loader = self.DatasetProcessor.create_dataloader(
                                     is_training=True)
         self.timer.check('create_dataloader')
-        log.info("Loaded dataset")
+        log.info(f"Loaded dataset with size: {len(self.train_data_loader.dataset)}")
             
     def set_network(self):
         """
@@ -221,6 +223,8 @@ class Trainer(object):
             self.optimizer = optim.Adam(self.net.parameters(), lr=self.lr, weight_decay=self.weight_decay_rate)
         elif self.optimizer == 'sgd':
             self.optimizer = optim.SGD(self.net.parameters(), lr=self.lr, momentum=0.8)
+        elif self.optimizer == 'adamw':
+            self.optimizer = optim.AdamW(self.net.parameters(), lr=self.lr, betas=(0.9, 0.999), eps=self.epsilon, weight_decay=self.weight_decay_rate)
         else:
             raise ValueError('Invalid optimizer.')
 
@@ -245,7 +249,7 @@ class Trainer(object):
         """
         if self.valid and self.rank ==0:
             self.validator = Validator(self.params, self.rank, self.net)
-            
+            log.info(f"Loaded validator with size: {len(self.validator.val_data_loader.dataset)}")            
     #######################
     # pre_epoch
     #######################
@@ -269,7 +273,7 @@ class Trainer(object):
     #######################
     # iterate
     #######################b
-
+    
     def iterate(self, epoch):
         """
         Override this if there is a need to override the dataset iteration.

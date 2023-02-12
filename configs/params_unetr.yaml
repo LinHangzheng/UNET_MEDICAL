@@ -31,7 +31,7 @@ train_input:
     IR_channel_level: 17 # up to 19
     noise_variance: 0
     augment_data: True
-    batch_size: 4
+    batch_size: 12
     num_workers: 0
     drop_last: True
     prefetch_factor: 10
@@ -63,12 +63,21 @@ optimizer:
 
 runconfig:
     model_type: "UNETR"
+<<<<<<< HEAD
     logs: 'checkpoints/UNETR'
     pretrained: False
     pretrained_from_DDP: True
     epochs: 100000
     train_batch_size: 2
     eval_batch_size: 2
+=======
+    logs: '/raid/projects/hangzheng/checkpoints/UNETR'
+    pretrained: '/raid/projects/hangzheng/checkpoints/20230207-012355.pth'
+    pretrained_from_DDP: True
+    epochs: 100000
+    train_batch_size: 16
+    eval_batch_size: 32
+>>>>>>> 4ea1c31179f6cdac5bbd2ace208ce8c1dd09df86
     save_summary_epoch: 100
     save_checkpoints_epoch: 100
     keep_checkpoint_max: 2
@@ -80,7 +89,11 @@ runconfig:
     valid: True
     valid_only: False
     valid_every: 20
+<<<<<<< HEAD
     model_path: "checkpoints"
+=======
+    model_path: "/raid/projects/hangzheng/checkpoints/UNETR"
+>>>>>>> 4ea1c31179f6cdac5bbd2ace208ce8c1dd09df86
     save_as_new: False
     world_size: 1
     duplicate_act_worker_data: True

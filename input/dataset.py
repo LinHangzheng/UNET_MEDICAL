@@ -159,7 +159,7 @@ class IRDatasetProcessor(VisionDataset):
 
 
         image = image.type(self.mp_type)
-
+        mask = mask.type(torch.int64)
         return image, mask
 
     def get_augment_transforms(
