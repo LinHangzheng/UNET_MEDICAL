@@ -31,7 +31,7 @@ train_input:
     IR_channel_level: 17 # up to 19
     noise_variance: 0
     augment_data: True
-    batch_size: 32
+    batch_size: 76
     num_workers: 0
     drop_last: True
     prefetch_factor: 10
