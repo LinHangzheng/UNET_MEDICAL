@@ -79,6 +79,7 @@ class IRDatasetProcessor(VisionDataset):
         return dataset
 
     def create_dataloader(self, is_training=False):
+        self.is_training = is_training
         dataset = self.create_dataset(is_training)
         generator_fn = torch.Generator(device="cpu")
         if self.shuffle_seed is not None:
@@ -171,23 +172,24 @@ class IRDatasetProcessor(VisionDataset):
                 lambda x: transforms.functional.crop(x, top=crop_h, left=crop_w, height=image_height, width=image_width)
             )
             augment_transforms_list.append(crop_transform)
-            
-        if do_horizontal_flip:
-            horizontal_flip_transform = transforms.Lambda(
-                lambda x: transforms.functional.hflip(x)
-            )
-            augment_transforms_list.append(horizontal_flip_transform)
+        
+        if self.is_training:
+            if do_horizontal_flip:
+                horizontal_flip_transform = transforms.Lambda(
+                    lambda x: transforms.functional.hflip(x)
+                )
+                augment_transforms_list.append(horizontal_flip_transform)
 
-        if n_rotations > 0:
-            rotation_transform = transforms.Lambda(
-                lambda x: rotation_90_transform(x, num_rotations=n_rotations)
-            )
-            augment_transforms_list.append(rotation_transform)
-            
-        if do_random_brightness:
-            brightness_transform = transforms.Lambda(
-                lambda x: adjust_brightness_transform(x, p=0.5, delta=0.2)
-            )
-            augment_transforms_list.append(brightness_transform)
+            if n_rotations > 0:
+                rotation_transform = transforms.Lambda(
+                    lambda x: rotation_90_transform(x, num_rotations=n_rotations)
+                )
+                augment_transforms_list.append(rotation_transform)
+                
+            if do_random_brightness:
+                brightness_transform = transforms.Lambda(
+                    lambda x: adjust_brightness_transform(x, p=0.5, delta=0.2)
+                )
+                augment_transforms_list.append(brightness_transform)
             
         return transforms.Compose(augment_transforms_list)
