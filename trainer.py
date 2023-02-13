@@ -157,6 +157,9 @@ class Trainer(object):
         
         # self.train_data_loader = DataLoader(self.train_dataset, batch_size=self.batch, 
         #                                     shuffle=False, pin_memory=True, num_workers=0,sampler=sampler)
+        if self.valid_only:
+            return
+        
         self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.train_data_loader = self.DatasetProcessor.create_dataloader(
                                     is_training=True)
