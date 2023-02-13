@@ -431,7 +431,7 @@ class Trainer(object):
 
         for k, v in val_dict.items():
             self.writer.add_scalar(f'Validation/{k}', v, epoch)
-            log_text += ' | {}: {:.2f}'.format(k, v)
+            log_text += ' | {}: {:.4f}'.format(k, v)
             wandb.log({k: v})
         log.info(log_text)
     

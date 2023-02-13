@@ -65,7 +65,7 @@ optimizer:
 runconfig:
     model_type: "SwinUNet"
     logs: '/raid/projects/hangzheng/checkpoints/SwinUNet'
-    pretrained: '/raid/projects/hangzheng/checkpoints/SwinUNet/20230208-030801.pth'
+    pretrained: '/raid/projects/hangzheng/checkpoints/SwinUNet/20230208-223622.pth'
     pretrained_from_DDP: True
     epochs: 100000
     steps_per_epoch: 32
@@ -80,7 +80,7 @@ runconfig:
     mode: 'train'
     eval_steps: 100
     valid: True
-    valid_only: False
+    valid_only: True
     valid_every: 20
     model_path: "/raid/projects/hangzheng/checkpoints/SwinUNet"
     save_as_new: False
