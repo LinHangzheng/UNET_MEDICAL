@@ -6,6 +6,7 @@ from torchvision.datasets import VisionDataset
 from einops import rearrange
 import torch.distributed as dist
 import numpy as np
+from torch.utils.data.distributed import DistributedSampler
 from .preprocessing_utils import (
     adjust_brightness_transform,
     rotation_90_transform,
@@ -62,7 +63,8 @@ class IRDatasetProcessor(VisionDataset):
         self.drop_last = params["train_input"].get("drop_last", True)
         self.prefetch_factor = params["train_input"].get("prefetch_factor", 10)
         self.persistent_workers = params.get("persistent_workers", True)
-
+        self.world_size = params["runconfig"]["world_size"]
+        
         self.mp_type = torch.float32
         # default is that each activation worker sends `num_workers`
         # batches so total batch_size * num_act_workers * num_pytorch_workers samples
@@ -78,7 +80,7 @@ class IRDatasetProcessor(VisionDataset):
         )
         return dataset
 
-    def create_dataloader(self, is_training=False):
+    def create_dataloader(self, is_training=False, rank=0):
         self.is_training = is_training
         dataset = self.create_dataset(is_training)
         generator_fn = torch.Generator(device="cpu")
@@ -87,7 +89,13 @@ class IRDatasetProcessor(VisionDataset):
 
         data_sampler = torch.utils.data.SequentialSampler(dataset)
 
-        if self.shuffle and is_training:
+        if self.world_size > 1:
+            data_sampler = DistributedSampler(dataset,
+                        num_replicas=self.world_size, 
+                        rank=rank, 
+                        shuffle=self.shuffle, 
+                        drop_last=self.drop_last)
+        elif self.shuffle and is_training:
             seed = self.shuffle_seed + dist.get_rank()
             generator_fn.manual_seed(seed)
             data_sampler = torch.utils.data.RandomSampler(
