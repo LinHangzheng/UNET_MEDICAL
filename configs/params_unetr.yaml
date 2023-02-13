@@ -81,5 +81,5 @@ runconfig:
     valid_every: 20
     model_path: "/raid/projects/hangzheng/checkpoints/UNETR"
     save_as_new: False
-    world_size: 1
+    world_size: 4
     duplicate_act_worker_data: True
