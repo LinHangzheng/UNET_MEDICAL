@@ -30,9 +30,10 @@ class IRDataset(VisionDataset):
         self.label = sorted(glob(os.path.join(self.root,split,'label/*.npy')))
         
     def __len__(self):
-        return len(self.IR)
+        return len(self.IR)*100
         
     def __getitem__(self, idx:int):
+        idx = idx%len(self.IR)
         patch = torch.from_numpy(np.load(self.IR[idx]))
         label = torch.from_numpy(np.load(self.label[idx]))
         if self.transforms is not None:
