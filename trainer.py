@@ -162,7 +162,7 @@ class Trainer(object):
         
         self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.train_data_loader = self.DatasetProcessor.create_dataloader(
-                                    is_training=True)
+                                    is_training=True,rank=self.rank)
         self.timer.check('create_dataloader')
         log.info(f"Loaded dataset with size: {len(self.train_data_loader.dataset)}")
             
