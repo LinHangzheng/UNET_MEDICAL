@@ -32,8 +32,8 @@ train_input:
     augment_data: True
     batch_size: 64
     num_workers: 0
-    drop_last: True
-    prefetch_factor: 10
+    drop_last: False
+    prefetch_factor: 3
 
 model:
     embed_dim: 768
@@ -43,7 +43,7 @@ model:
     
 optimizer:
     lr: 0.0001
-    optimizer_type: 'adam' # {'sgd', 'momentum', 'adam', 'adamw'}
+    optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 5e-5
     epsilon: 1e-6
     max_gradient_norm: 1.0
@@ -63,7 +63,7 @@ optimizer:
 runconfig:
     model_type: "UNETR"
     logs: '/raid/projects/hangzheng/checkpoints/UNETR'
-    pretrained: False
+    pretrained: '/raid/projects/hangzheng/checkpoints/UNETR/20230212-221422.pth'
     pretrained_from_DDP: True
     epochs: 100000
     train_batch_size: 16
@@ -81,5 +81,5 @@ runconfig:
     valid_every: 20
     model_path: "/raid/projects/hangzheng/checkpoints/UNETR"
     save_as_new: False
-    world_size: 4
+    world_size: 1
     duplicate_act_worker_data: True

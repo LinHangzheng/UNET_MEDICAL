@@ -30,10 +30,9 @@ class IRDataset(VisionDataset):
         self.label = sorted(glob(os.path.join(self.root,split,'label/*.npy')))
         
     def __len__(self):
-        return len(self.IR)*100
+        return len(self.IR)
         
     def __getitem__(self, idx:int):
-        idx = idx%len(self.IR)
         patch = torch.from_numpy(np.load(self.IR[idx]))
         label = torch.from_numpy(np.load(self.label[idx]))
         if self.transforms is not None:
@@ -84,7 +83,7 @@ class IRDatasetProcessor(VisionDataset):
     def create_dataloader(self, is_training=False, rank=0):
         self.is_training = is_training
         dataset = self.create_dataset(is_training)
-        generator_fn = torch.Generator(device="cpu")
+        generator_fn = torch.Generator(device='cpu')
         if self.shuffle_seed is not None:
             generator_fn.manual_seed(self.shuffle_seed)
 
