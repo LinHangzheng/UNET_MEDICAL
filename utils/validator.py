@@ -23,6 +23,7 @@ import torch
 
 from input import IRDatasetProcessor
 from .metric import compute_acu, compute_auc, plot_roc
+from .image_plot import plot_pred
 from einops import rearrange
 class Validator(object):
     """Geometric validation; sample 3D points for distance/occupancy metrics."""
@@ -31,6 +32,8 @@ class Validator(object):
         self.params = params
         self.num_class = params["train_input"]["num_classes"]
         self.valid_only = params["runconfig"]["valid_only"]
+        self.batch_size = params["train_input"]["batch_size"]
+        self.plot_path = params["eval_input"]["plot_path"]
         self.device = device
         self.net = net
         self.set_dataset()
@@ -54,6 +57,8 @@ class Validator(object):
             labels = data[1].to(self.device)
             
             preds = self.net(images)
+            if self.valid_only: 
+                plot_pred(n_iter*self.batch_size,self.num_class,images,labels,preds,self.plot_path)
             preds = rearrange(preds, 'b c h w -> (b h w) c')
             val_dict['ACU'] += [compute_acu(preds, labels, self.num_class)]*images.shape[0]
             val_dict['AUC'] += [compute_auc(preds, labels, self.num_class)]*images.shape[0]
