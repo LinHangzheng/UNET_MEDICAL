@@ -138,18 +138,13 @@ class UNETR(nn.Module):
                  patch_size=16, 
                  num_heads=12, 
                  dropout=0.1,
-                 mlp_hidden=2048):
+                 mlp_hidden=2048,
+                 num_layers=12,
+                 ext_layers=[3, 6, 9, 12]):
         
         super().__init__()
-        self.input_dim = input_dim
-        self.output_dim = output_dim
         self.embed_dim = embed_dim
-        self.img_shape = img_shape
         self.patch_size = patch_size
-        self.num_heads = num_heads
-        self.dropout = dropout
-        self.num_layers = 12
-        self.ext_layers = [3, 6, 9, 12]
 
         self.patch_dim = [x // patch_size for x in img_shape]
 
@@ -161,9 +156,9 @@ class UNETR(nn.Module):
                 img_shape,
                 patch_size,
                 num_heads,
-                self.num_layers,
+                num_layers,
                 dropout,
-                self.ext_layers,
+                ext_layers,
                 mlp_hidden
             )
 

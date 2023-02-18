@@ -190,7 +190,9 @@ class Trainer(object):
                              patch_size=params_model['patch_size'], 
                              num_heads=params_model['num_heads'], 
                              dropout=params_model['dropout'],
-                             mlp_hidden=params_model['mlp_hidden'])
+                             mlp_hidden=params_model['mlp_hidden'],
+                             num_layers=params_model['num_layers'],
+                             ext_layers=params_model['ext_layers'])
         elif self.model_type == 'SwinUNet':
             params_model = self.params['model']
             self.net = SwinUnet(img_size=self.image_shape[0],
