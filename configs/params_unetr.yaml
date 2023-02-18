@@ -39,11 +39,13 @@ eval_input:
     plot_path: "."
 
 model:
-    embed_dim: 768
-    patch_size: 4
-    num_heads: 12
+    embed_dim: 1024
+    patch_size: 16
+    num_heads: 16
     dropout: 0.1
     mlp_hidden: 4096
+    num_layers: 24
+    ext_layers: [6,12,18,24] #[3, 6, 9, 12]
 
 optimizer:
     lr: 0.0001
