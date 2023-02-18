@@ -5,30 +5,11 @@ import torch.nn.functional as F
 import math
 
 
-class SingleDeconv2DBlock(nn.Module):
-    def __init__(self, in_planes, out_planes):
-        super().__init__()
-        self.block = nn.ConvTranspose2d(in_planes, out_planes, kernel_size=2, stride=2, padding=0, output_padding=0)
-
-    def forward(self, x):
-        return self.block(x)
-
-
-class SingleConv2dBlock(nn.Module):
-    def __init__(self, in_planes, out_planes, kernel_size):
-        super().__init__()
-        self.block = nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, stride=1,
-                               padding=((kernel_size - 1) // 2))
-
-    def forward(self, x):
-        return self.block(x)
-
-
 class Conv2dBlock(nn.Module):
     def __init__(self, in_planes, out_planes, kernel_size=3):
         super().__init__()
         self.block = nn.Sequential(
-            SingleConv2dBlock(in_planes, out_planes, kernel_size),
+            nn.Conv2d(in_planes, out_planes, kernel_size, stride=1, padding=((kernel_size - 1) // 2)),
             nn.BatchNorm2d(out_planes),
             nn.ReLU(True)
         )
@@ -41,62 +22,14 @@ class DeConv2dBlock(nn.Module):
     def __init__(self, in_planes, out_planes, kernel_size=3):
         super().__init__()
         self.block = nn.Sequential(
-            SingleDeconv2DBlock(in_planes, out_planes),
-            SingleConv2dBlock(out_planes, out_planes, kernel_size),
+            nn.ConvTranspose2d(in_planes, out_planes, kernel_size=2, stride=2),
+            nn.Conv2d(out_planes, out_planes, kernel_size, stride=1, padding=((kernel_size - 1) // 2)),
             nn.BatchNorm2d(out_planes),
             nn.ReLU(True)
         )
 
     def forward(self, x):
         return self.block(x)
-
-
-class SelfAttention(nn.Module):
-    def __init__(self, num_heads, embed_dim, dropout):
-        super().__init__()
-        self.num_attention_heads = num_heads
-        self.attention_head_size = int(embed_dim / num_heads)
-        self.all_head_size = self.num_attention_heads * self.attention_head_size
-
-        self.query = nn.Linear(embed_dim, self.all_head_size)
-        self.key = nn.Linear(embed_dim, self.all_head_size)
-        self.value = nn.Linear(embed_dim, self.all_head_size)
-
-        self.out = nn.Linear(embed_dim, embed_dim)
-        self.attn_dropout = nn.Dropout(dropout)
-        self.proj_dropout = nn.Dropout(dropout)
-
-        self.softmax = nn.Softmax(dim=-1)
-
-        self.vis = False
-
-    def transpose_for_scores(self, x):
-        new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
-        x = x.view(*new_x_shape)
-        return x.permute(0, 2, 1, 3)
-
-    def forward(self, hidden_states):
-        mixed_query_layer = self.query(hidden_states)
-        mixed_key_layer = self.key(hidden_states)
-        mixed_value_layer = self.value(hidden_states)
-
-        query_layer = self.transpose_for_scores(mixed_query_layer)
-        key_layer = self.transpose_for_scores(mixed_key_layer)
-        value_layer = self.transpose_for_scores(mixed_value_layer)
-
-        attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
-        attention_scores = attention_scores / math.sqrt(self.attention_head_size)
-        attention_probs = self.softmax(attention_scores)
-        weights = attention_probs if self.vis else None
-        attention_probs = self.attn_dropout(attention_probs)
-
-        context_layer = torch.matmul(attention_probs, value_layer)
-        context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
-        new_context_layer_shape = context_layer.size()[:-2] + (self.all_head_size,)
-        context_layer = context_layer.view(*new_context_layer_shape)
-        attention_output = self.out(context_layer)
-        attention_output = self.proj_dropout(attention_output)
-        return attention_output, weights
 
 
 class Mlp(nn.Module):
@@ -146,18 +79,24 @@ class Embeddings(nn.Module):
 
 
 class TransformerBlock(nn.Module):
-    def __init__(self, embed_dim, num_heads, dropout, image_size, patch_size):
+    def __init__(self, embed_dim, num_heads, dropout, image_size, patch_size, mlp_hidden):
         super().__init__()
         self.attention_norm = nn.LayerNorm(embed_dim, eps=1e-6)
         self.mlp_norm = nn.LayerNorm(embed_dim, eps=1e-6)
         self.mlp_dim = int((image_size[0] * image_size[1] ) / (patch_size * patch_size))
-        self.mlp = PositionwiseFeedForward(embed_dim, 2048)
-        self.attn = SelfAttention(num_heads, embed_dim, dropout)
-
+        self.mlp = PositionwiseFeedForward(embed_dim, mlp_hidden)
+        self.key = nn.Linear(embed_dim, embed_dim)
+        self.value = nn.Linear(embed_dim, embed_dim)
+        self.query = nn.Linear(embed_dim, embed_dim)
+        self.attn = nn.MultiheadAttention(embed_dim, num_heads, dropout)
+        
     def forward(self, x):
         h = x
         x = self.attention_norm(x)
-        x, weights = self.attn(x)
+        key = self.key(x)
+        value = self.value(x)
+        query = self.query(x)
+        x, weights = self.attn(query, key, value)
         x = x + h
         h = x
 
@@ -169,14 +108,14 @@ class TransformerBlock(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self, input_dim, embed_dim, image_size, patch_size, num_heads, num_layers, dropout, extract_layers):
+    def __init__(self, input_dim, embed_dim, image_size, patch_size, num_heads, num_layers, dropout, extract_layers, mlp_hidden):
         super().__init__()
         self.embeddings = Embeddings(input_dim, embed_dim, image_size, patch_size, dropout)
         self.layer = nn.ModuleList()
         self.encoder_norm = nn.LayerNorm(embed_dim, eps=1e-6)
         self.extract_layers = extract_layers
         for _ in range(num_layers):
-            layer = TransformerBlock(embed_dim, num_heads, dropout, image_size, patch_size)
+            layer = TransformerBlock(embed_dim, num_heads, dropout, image_size, patch_size, mlp_hidden)
             self.layer.append(copy.deepcopy(layer))
 
     def forward(self, x):
@@ -192,7 +131,15 @@ class Transformer(nn.Module):
 
 
 class UNETR(nn.Module):
-    def __init__(self, img_shape=(128, 128), input_dim=4, output_dim=3, embed_dim=768, patch_size=16, num_heads=12, dropout=0.1):
+    def __init__(self, img_shape=(128, 128), 
+                 input_dim=19, 
+                 output_dim=11, 
+                 embed_dim=768, 
+                 patch_size=16, 
+                 num_heads=12, 
+                 dropout=0.1,
+                 mlp_hidden=2048):
+        
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -204,7 +151,7 @@ class UNETR(nn.Module):
         self.num_layers = 12
         self.ext_layers = [3, 6, 9, 12]
 
-        self.patch_dim = [int(x / patch_size) for x in img_shape]
+        self.patch_dim = [x // patch_size for x in img_shape]
 
         # Transformer Encoder
         self.transformer = \
@@ -216,7 +163,8 @@ class UNETR(nn.Module):
                 num_heads,
                 self.num_layers,
                 dropout,
-                self.ext_layers
+                self.ext_layers,
+                mlp_hidden
             )
 
         # U-Net Decoder
@@ -243,35 +191,35 @@ class UNETR(nn.Module):
             DeConv2dBlock(embed_dim, 512)
 
         self.decoder12_upsampler = \
-            SingleDeconv2DBlock(embed_dim, 512)
+            nn.ConvTranspose2d(embed_dim, 512, kernel_size=2, stride=2)
 
         self.decoder9_upsampler = \
             nn.Sequential(
                 Conv2dBlock(1024, 512),
                 Conv2dBlock(512, 512),
                 Conv2dBlock(512, 512),
-                SingleDeconv2DBlock(512, 256)
+                nn.ConvTranspose2d(512, 516, kernel_size=2, stride=2)
             )
 
         self.decoder6_upsampler = \
             nn.Sequential(
                 Conv2dBlock(512, 256),
                 Conv2dBlock(256, 256),
-                SingleDeconv2DBlock(256, 128)
+                nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
             )
 
         self.decoder3_upsampler = \
             nn.Sequential(
                 Conv2dBlock(256, 128),
                 Conv2dBlock(128, 128),
-                SingleDeconv2DBlock(128, 64)
+                nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
             )
 
         self.decoder0_header = \
             nn.Sequential(
                 Conv2dBlock(128, 64),
                 Conv2dBlock(64, 64),
-                SingleConv2dBlock(64, output_dim, 1)
+                nn.Conv2d(64, output_dim, kernel_size=1),
             )
 
     def forward(self, x):

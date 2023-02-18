@@ -19,7 +19,7 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    data_dir: '/raid/projects/hangzheng/data' # Place to store data
+    data_dir: 'data' # Place to store data
     shuffle: True
     shuffle_seed: 1
     num_parallel_calls: 0   # 0 means AUTOTUNE
@@ -30,20 +30,21 @@ train_input:
     IR_channel_level: 17 # up to 19
     noise_variance: 0
     augment_data: True
-    batch_size: 76
+    batch_size: 2
     num_workers: 0
     drop_last: False
     prefetch_factor: 3
 
 eval_input:
-    plot_path: "/raid/projects/hangzheng/result/UNETR/pred_images"
+    plot_path: "."
 
 model:
     embed_dim: 768
-    patch_size: 16
+    patch_size: 4
     num_heads: 12
     dropout: 0.1
-    
+    mlp_hidden: 4096
+
 optimizer:
     lr: 0.0001
     optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
@@ -66,7 +67,7 @@ optimizer:
 runconfig:
     model_type: "UNETR"
     logs: 'checkpoints/UNETR'
-    pretrained: 'checkpoints/UNETR/20230214-221513.pth'
+    pretrained: False
     pretrained_from_DDP: True
     epochs: 100000
     train_batch_size: 16
