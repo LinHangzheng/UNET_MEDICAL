@@ -193,7 +193,7 @@ class UNETR(nn.Module):
                 Conv2dBlock(1024, 512),
                 Conv2dBlock(512, 512),
                 Conv2dBlock(512, 512),
-                nn.ConvTranspose2d(512, 516, kernel_size=2, stride=2)
+                nn.ConvTranspose2d(512, 512, kernel_size=2, stride=2)
             )
 
         self.decoder6_upsampler = \
