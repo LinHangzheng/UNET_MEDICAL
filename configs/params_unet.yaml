@@ -36,6 +36,8 @@ train_input:
     drop_last: False
     prefetch_factor: 10
 
+eval_input:
+    plot_path: "."
 model:
     classes_num: 11
     layer_norm_epsilon: 1.0e-05

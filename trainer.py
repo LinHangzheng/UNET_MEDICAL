@@ -397,7 +397,7 @@ class Trainer(object):
         Override this if some very specific training procedure is needed.
         """
 
-        if self.valid is not None and self.valid_only:
+        if self.valid and self.valid_only:
             self.validate(0)
             return
 
@@ -436,7 +436,7 @@ class Trainer(object):
 
         for k, v in val_dict.items():
             self.writer.add_scalar(f'Validation/{k}', v, epoch)
-            log_text += ' | {}: {:.4f}'.format(k, v)
+            log_text += ' | {}: {:.6f}'.format(k, v)
             wandb.log({k: v})
         log.info(log_text)
     

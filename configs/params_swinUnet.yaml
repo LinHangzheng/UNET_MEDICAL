@@ -36,6 +36,9 @@ train_input:
     drop_last: True
     prefetch_factor: 10
 
+eval_input:
+    plot_path: "/raid/projects/hangzheng/result/SWINUNET/pred_images"
+
 model:
     embed_dim: 96
     patch_size: 4
@@ -65,7 +68,7 @@ optimizer:
 runconfig:
     model_type: "SwinUNet"
     logs: '/raid/projects/hangzheng/checkpoints/SwinUNet'
-    pretrained: '/raid/projects/hangzheng/checkpoints/SwinUNet/20230208-223622.pth'
+    pretrained: '/raid/projects/hangzheng/checkpoints/SwinUNet/20230214-222111.pth'
     pretrained_from_DDP: True
     epochs: 100000
     steps_per_epoch: 32
