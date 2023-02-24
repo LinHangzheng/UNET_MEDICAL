@@ -10,10 +10,8 @@ from utils import PerfTimer, Validator, compute_acu
 from input import IRDatasetProcessor
 import torch.distributed as dist
 from collections import OrderedDict
-import numpy as np
 import wandb
 from einops import rearrange
-from PIL import Image
 
 class Trainer(object):
     """
