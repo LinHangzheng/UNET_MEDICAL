@@ -293,33 +293,34 @@ class Trainer(object):
             Override this function to change the per-iteration behaviour.
             """
             # Map to device
-
+            self.timer.check('inner_iter start')
             images = data[0].to(self.rank)
             labels = data[1].to(self.rank)
-
+            self.timer.check('send to device')
             # Prepare for inference
             batch_size = images.shape[0]
             self.optimizer.zero_grad()
-
+            self.timer.check('optimizer reset')
             # Calculate loss
             preds = self.net(images)
+            self.timer.check('training')
             preds = rearrange(preds, 'b c h w -> (b h w) c')
             labels = rearrange(labels, 'b h w -> (b h w)')
-        
+            self.timer.check('rearrange')
             loss = self.loss(preds,labels)
-            
+            self.timer.check('get loss')
             # Update logs
             self.log_dict['cross_entropy_loss'] += loss.item()
             self.log_dict['total_loss'] += loss.item()
             self.log_dict['total_iter_count'] += batch_size
             self.log_dict['training_acu'] += compute_acu(preds, labels, self.num_classes, only_total=True)*batch_size
-
+            
             loss /= batch_size
-
+            self.timer.check('log update')
             # Backpropagate
             loss.mean().backward()
             self.optimizer.step()
-       
+            self.timer.check('inner done')
     #######################
     # post_epoch
     #######################

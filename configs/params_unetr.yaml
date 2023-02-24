@@ -30,22 +30,22 @@ train_input:
     IR_channel_level: 17 # up to 19
     noise_variance: 0
     augment_data: True
-    batch_size: 4
-    num_workers: 0
+    batch_size: 76
+    num_workers: 8
     drop_last: False
-    prefetch_factor: 3
+    prefetch_factor: 6
 
 eval_input:
     plot_path: "."
 
 model:
-    embed_dim: 1024
+    embed_dim: 512
     patch_size: 16
     num_heads: 16
     dropout: 0.1
-    mlp_hidden: 4096
-    num_layers: 24
-    ext_layers: [6,12,18,24] #[3, 6, 9, 12]
+    mlp_hidden: 2048
+    num_layers: 20
+    ext_layers: [5,10,15,20] #[3, 6, 9, 12]
 
 optimizer:
     lr: 0.0001
@@ -69,7 +69,7 @@ optimizer:
 runconfig:
     model_type: "UNETR"
     logs: '/raid/projects/hangzheng/checkpoints/UNETR'
-    pretrained: False
+    pretrained: '/raid/projects/hangzheng/checkpoints/UNETR/20230221-060040.pth'
     pretrained_from_DDP: True
     epochs: 100000
     train_batch_size: 16
@@ -82,8 +82,8 @@ runconfig:
     multireplica: False
     mode: 'train'
     eval_steps: 100
-    valid: False
-    valid_only: False
+    valid: True
+    valid_only: True
     valid_every: 20
     model_path: "/raid/projects/hangzheng/checkpoints/UNETR"
     save_as_new: False

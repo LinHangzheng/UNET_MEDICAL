@@ -32,12 +32,12 @@ train_input:
     noise_variance: 0
     augment_data: True
     batch_size: 76
-    num_workers: 0
+    num_workers: 4
     drop_last: False
-    prefetch_factor: 10
+    prefetch_factor: 4
 
 eval_input:
-    plot_path: "."
+    plot_path: "./out_unet"
 model:
     classes_num: 11
     layer_norm_epsilon: 1.0e-05
@@ -55,9 +55,9 @@ optimizer:
 
 
 runconfig:
-    logs: 'checkpoints/UNet'
+    logs: '/raid/projects/hangzheng/checkpoints/UNet/run_2'
     model_type: "UNet" #UNet GeneratorUNet
-    pretrained: '/raid/projects/hangzheng/checkpoints/UNet/20230208-223428.pth'
+    pretrained: '/raid/projects/hangzheng/checkpoints/UNet/run_2/20230220-144613.pth'
     pretrained_from_DDP: True
     epochs: 100000
     save_summary_epoch: 100
@@ -69,7 +69,7 @@ runconfig:
     valid: True
     valid_only: True
     valid_every: 20
-    model_path: "checkpoints/UNet"
+    model_path: "/raid/projects/hangzheng/checkpoints/UNet/run_2"
     save_as_new: False
     world_size: 1
     duplicate_act_worker_data: True
