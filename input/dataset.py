@@ -17,6 +17,7 @@ class IRDataset(VisionDataset):
         self, 
         root, 
         split='train',
+        IR_channel_level = 3,
         transforms=None,
         transform=None,
         target_transform=None
@@ -26,14 +27,16 @@ class IRDataset(VisionDataset):
         )
         self.split = split
         self.root = root
+        self.IR_channel_level = IR_channel_level
         self.IR = sorted(glob(os.path.join(self.root,split,'IR/*.npy')))
         self.label = sorted(glob(os.path.join(self.root,split,'label/*.npy')))
+        self.channel_map = [15, 9, 5, 1, 13, 11, 2, 8, 0, 7, 3, 16, 14, 6, 4, 12, 10]
         
     def __len__(self):
         return len(self.IR)
         
     def __getitem__(self, idx:int):
-        patch = torch.from_numpy(np.load(self.IR[idx]))
+        patch = torch.from_numpy(np.load(self.IR[idx])[self.channel_map[:self.IR_channel_level],:,:])
         label = torch.from_numpy(np.load(self.label[idx]))
         if self.transforms is not None:
             patch, label = self.transforms(patch, label)
@@ -62,6 +65,7 @@ class IRDatasetProcessor(VisionDataset):
         self.num_workers = params["train_input"].get("num_workers", 0)
         self.drop_last = params["train_input"].get("drop_last", True)
         self.prefetch_factor = params["train_input"].get("prefetch_factor", 10)
+        self.IR_channel_level = params["train_input"]["IR_channel_level"]
         self.persistent_workers = params.get("persistent_workers", True)
         self.world_size = params["runconfig"]["world_size"]
         
@@ -76,7 +80,8 @@ class IRDatasetProcessor(VisionDataset):
         dataset = IRDataset(
             root=self.data_dir,
             split=split,
-            transforms=self.transform_image_and_mask
+            IR_channel_level=self.IR_channel_level,
+            transforms=self.transform_image_and_mask,
         )
         return dataset
 
