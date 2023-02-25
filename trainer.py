@@ -172,7 +172,7 @@ class Trainer(object):
         if self.model_type == 'GeneratorUNet':
             self.net = GeneratorUNet(in_channels=self.IR_channel_level, out_channels=self.num_classes)
         elif self.model_type == 'UNet':
-            self.net = UNet(n_channels=self.IR_channel_level, n_classes=self.num_classes)
+            self.net = UNet(in_ch=self.IR_channel_level, out_ch=self.num_classes)
         elif self.model_type == 'Segmenter':
             model_cfg = self.params['model'].copy()
             model_cfg.update(self.params['vit'][model_cfg['backbone']])
