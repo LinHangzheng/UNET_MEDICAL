@@ -27,7 +27,11 @@ train_input:
     # IR_threshould: 0.18
     image_shape: [224,224] #128
     dataset: "IR_dataset"
+<<<<<<< HEAD
     IR_channel_level: 3 # up to 19
+=======
+    IR_channel_level: 3 # up to 17
+>>>>>>> 85c4243bcc3e54b21907785cf66bef753187e743
     noise_variance: 0
     augment_data: True
     batch_size: 48
