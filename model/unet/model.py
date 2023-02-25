@@ -1,4 +1,4 @@
-from base_network import conv_block, up_conv
+from .base_network import conv_block, up_conv
 import torch.nn as nn
 import torch.utils.data
 import torch
