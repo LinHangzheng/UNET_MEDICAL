@@ -79,7 +79,7 @@ class Trainer(object):
         self.save_as_new = params["runconfig"]["save_as_new"]
         self.world_size = params["runconfig"]["world_size"]
         self.mode = params["runconfig"]["mode"]
-        
+        self.find_unused_parameters = params["runconfig"]["find_unused_parameters"]
         self.timer = PerfTimer(activate=False)
         self.timer.reset()
         self.rank = rank
@@ -125,16 +125,17 @@ class Trainer(object):
     def set_wandb(self):
         if self.rank ==0:
             wandb.init(name=self.wandb, project="holli", entity="hangzheng", mode=None if self.wandb else "disabled" ) #,mode="disabled"
-            wandb.config.update = {
-                "learning_rate": self.lr,
-                "epochs": self.epochs,
-                "batch_size": self.batch_size,
-                "image_shape":self.image_shape,
-                "weight_decay_rate":self.weight_decay_rate,
-                "world_size": self.world_size,
-                "device_name": self.device_name,
-                "model_type": self.model_type
-                }
+           # wandb.config.update = {
+            #    "learning_rate": self.lr,
+             #   "epochs": self.epochs,
+             #   "batch_size": self.batch_size,
+             #   "image_shape":self.image_shape,
+             #   "weight_decay_rate":self.weight_decay_rate,
+             #   "world_size": self.world_size,
+             #   "device_name": self.device_name,
+             #   "model_type": self.model_type
+             #   }
+            wandb.config.update = self.params
         
     def set_dataset(self):
         """
@@ -214,7 +215,7 @@ class Trainer(object):
             log.info("Pretrained model loaded")
 
         self.net.to(self.rank)
-        self.net = DDP(self.net, device_ids=[self.rank], output_device=self.rank,find_unused_parameters=True)
+        self.net = DDP(self.net, device_ids=[self.rank], output_device=self.rank,find_unused_parameters=self.find_unused_parameters)
         log.info("Total number of parameters: {}".format(sum(p.numel() for p in self.net.parameters())))
 
     def set_optimizer(self):
@@ -291,33 +292,34 @@ class Trainer(object):
             Override this function to change the per-iteration behaviour.
             """
             # Map to device
-
+            self.timer.check('inner_iter start')
             images = data[0].to(self.rank)
             labels = data[1].to(self.rank)
-
+            self.timer.check('send to device')
             # Prepare for inference
             batch_size = images.shape[0]
             self.optimizer.zero_grad()
-
+            self.timer.check('optimizer reset')
             # Calculate loss
             preds = self.net(images)
+            self.timer.check('training')
             preds = rearrange(preds, 'b c h w -> (b h w) c')
             labels = rearrange(labels, 'b h w -> (b h w)')
-        
+            self.timer.check('rearrange')
             loss = self.loss(preds,labels)
-            
+            self.timer.check('get loss')
             # Update logs
             self.log_dict['cross_entropy_loss'] += loss.item()
             self.log_dict['total_loss'] += loss.item()
             self.log_dict['total_iter_count'] += batch_size
             self.log_dict['training_acu'] += compute_acu(preds, labels, self.num_classes, only_total=True)*batch_size
-
+            
             loss /= batch_size
-
+            self.timer.check('log update')
             # Backpropagate
             loss.mean().backward()
             self.optimizer.step()
-       
+            self.timer.check('inner done')
     #######################
     # post_epoch
     #######################
