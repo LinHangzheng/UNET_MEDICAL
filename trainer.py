@@ -6,12 +6,12 @@ import torch.optim as optim
 from model import *
 from torch.utils.tensorboard import SummaryWriter
 from torch.nn.parallel import DistributedDataParallel as DDP
-from utils import PerfTimer, Validator, compute_acu
+from utils import PerfTimer, Validator, compute_acu, CombinedLoss
 from input import IRDatasetProcessor
 import torch.distributed as dist
 from collections import OrderedDict
 import wandb
-from einops import rearrange
+# from einops import rearrange
 
 class Trainer(object):
     """
@@ -62,6 +62,7 @@ class Trainer(object):
         self.batch_size = params["train_input"]["batch_size"]
 
         self.optimizer = params["optimizer"]["optimizer_type"]
+        self.loss_lambda = params["optimizer"]["loss_lambda"]
         self.lr = params["optimizer"]["lr"]
         self.weight_decay_rate = float(params["optimizer"]["weight_decay_rate"])
         self.epsilon = float(params["optimizer"]["epsilon"])
@@ -182,16 +183,28 @@ class Trainer(object):
             self.net = create_segmenter(model_cfg)
         elif self.model_type == 'UNETR':
             params_model = self.params['model']
-            self.net = UNETR(img_shape=self.image_shape, 
-                             input_dim=self.IR_channel_level, 
-                             output_dim=self.num_classes, 
-                             embed_dim=params_model['embed_dim'], 
-                             patch_size=params_model['patch_size'], 
-                             num_heads=params_model['num_heads'], 
-                             dropout=params_model['dropout'],
-                             mlp_hidden=params_model['mlp_hidden'],
-                             num_layers=params_model['num_layers'],
-                             ext_layers=params_model['ext_layers'])
+            if self.params['model']['patch_size'] == 16:
+                self.net = UNETR(img_shape=self.image_shape, 
+                                input_dim=self.IR_channel_level, 
+                                output_dim=self.num_classes, 
+                                embed_dim=params_model['embed_dim'], 
+                                patch_size=params_model['patch_size'], 
+                                num_heads=params_model['num_heads'], 
+                                dropout=params_model['dropout'],
+                                mlp_hidden=params_model['mlp_hidden'],
+                                num_layers=params_model['num_layers'],
+                                ext_layers=params_model['ext_layers'])
+            elif self.params['model']['patch_size'] == 4:
+                self.net = UNETR_patch4(img_shape=self.image_shape, 
+                                input_dim=self.IR_channel_level, 
+                                output_dim=self.num_classes, 
+                                embed_dim=params_model['embed_dim'], 
+                                patch_size=params_model['patch_size'], 
+                                num_heads=params_model['num_heads'], 
+                                dropout=params_model['dropout'],
+                                mlp_hidden=params_model['mlp_hidden'],
+                                num_layers=params_model['num_layers'],
+                                ext_layers=params_model['ext_layers'])
         elif self.model_type == 'SwinUNet':
             params_model = self.params['model']
             self.net = SwinUnet(img_size=self.image_shape[0],
@@ -200,7 +213,6 @@ class Trainer(object):
                                 in_chans=self.IR_channel_level,
                                 embed_dim=params_model['embed_dim'],
                                 window_size=params_model['window_size'],
-
                                 )
         if self.pretrained:
             state_dict = torch.load(self.pretrained)
@@ -234,7 +246,11 @@ class Trainer(object):
             raise ValueError('Invalid optimizer.')
 
     def set_criteria(self):
-        self.loss = torch.nn.CrossEntropyLoss()
+        weight_dice = 1/(1+self.loss_lambda)
+        weight_ce = 1-weight_dice
+        self.loss = CombinedLoss(weight_dice=weight_dice,
+                                 weight_ce=weight_ce,
+                                 smooth=1)
         
     def set_logger(self):
         """
@@ -271,7 +287,7 @@ class Trainer(object):
         self.log_dict['cross_entropy_loss'] = 0
         self.log_dict['total_loss'] = 0
         self.log_dict['total_iter_count'] = 0
-        self.log_dict['training_acu'] = 0
+        self.log_dict['training_dice'] = 0
 
         self.timer.check('pre_epoch done')
 
@@ -303,16 +319,16 @@ class Trainer(object):
             # Calculate loss
             preds = self.net(images)
             self.timer.check('training')
-            preds = rearrange(preds, 'b c h w -> (b h w) c')
-            labels = rearrange(labels, 'b h w -> (b h w)')
-            self.timer.check('rearrange')
-            loss = self.loss(preds,labels)
+            # preds = rearrange(preds, 'b c h w -> (b h w) c')
+            # labels = rearrange(labels, 'b h w -> (b h w)')
+            # self.timer.check('rearrange')
+            loss, dice, ce = self.loss(preds,labels)
             self.timer.check('get loss')
             # Update logs
-            self.log_dict['cross_entropy_loss'] += loss.item()
-            self.log_dict['total_loss'] += loss.item()
+            self.log_dict['cross_entropy_loss'] += ce.item()
+            self.log_dict['total_loss'] += loss.item()*batch_size
+            self.log_dict['training_dice'] += dice*batch_size
             self.log_dict['total_iter_count'] += batch_size
-            self.log_dict['training_acu'] += compute_acu(preds, labels, self.num_classes, only_total=True)*batch_size
             
             loss /= batch_size
             self.timer.check('log update')

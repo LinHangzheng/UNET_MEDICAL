@@ -19,7 +19,7 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    data_dir: '/raid/projects/hangzheng/data' # Place to store data
+    data_dir: 'data' # Place to store data
     shuffle: True
     shuffle_seed: 2
     num_parallel_calls: 0   # 0 means AUTOTUNE
@@ -30,8 +30,8 @@ train_input:
     IR_channel_level: 5 # up to 17
     noise_variance: 0
     augment_data: True
-    batch_size: 64
-    num_workers: 64
+    batch_size: 2
+    num_workers: 0
     drop_last: False
     prefetch_factor: 4
 
@@ -41,16 +41,17 @@ eval_input:
     batch_size: 76
 
 model:
-    embed_dim: 768
-    patch_size: 16
+    embed_dim: 128
+    patch_size: 4
     num_heads: 16
     dropout: 0.1
-    mlp_hidden: 1024
-    num_layers: 20
-    ext_layers: [5,10,15,20] #[3, 6, 9, 12]
+    mlp_hidden: 512
+    num_layers: 2
+    ext_layers: [1,2] #[3, 6, 9, 12]
 
 optimizer:
     lr: 0.0001
+    loss_lambda: 10
     optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 5e-5
     epsilon: 1e-6
@@ -70,8 +71,8 @@ optimizer:
 
 runconfig:
     model_type: "UNETR"
-    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_5_20_768'
-    pretrained: '/projects/hangzheng/checkpoints/UNETR/channel_5_20_768/20230301-115533.pth'
+    logs: 'checkpoints/UNETR/channel_5_20_768'
+    pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: True
     epochs: 1000
@@ -83,10 +84,10 @@ runconfig:
     multireplica: False
     mode: 'train'
     eval_steps: 100
-    valid: True
-    valid_only: True
+    valid: False
+    valid_only: False
     valid_every: 2
-    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_5_20_768"
+    model_path: "checkpoints/UNETR/channel_5_20_768"
     save_as_new: False
     world_size: 1
     duplicate_act_worker_data: True
