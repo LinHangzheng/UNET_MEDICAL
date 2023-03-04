@@ -26,9 +26,9 @@ def compute_acu(pre, labels, num_classes, only_total=False):
     ret = torch.Tensor(ret)
     return ret
 
-def compute_auc(pre, labels, num_classes, average=None, thresholds=None):
+def compute_auc(pre, labels, num_classes, average=None, thresholds=None, device=None):
     y = labels.view(-1)
-    mc_auroc = MulticlassAUROC(num_classes=num_classes, average=average, thresholds=thresholds)
+    mc_auroc = MulticlassAUROC(num_classes=num_classes, average=average, thresholds=thresholds).to(device)
     return mc_auroc(pre, y)
 
 def plot_roc(pre, labels, num_classes, save_path, thresholds=None):

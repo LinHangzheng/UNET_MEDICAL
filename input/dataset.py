@@ -33,8 +33,11 @@ class IRDataset(VisionDataset):
         self.channel_map = [15, 9, 5, 1, 13, 11, 2, 8, 0, 7, 3, 16, 14, 6, 4, 12, 10]
         
     def __len__(self):
-        return len(self.IR)*100
-        
+        if self.split == 'train':
+            return len(self.IR)*100
+        else:
+            return len(self.IR)
+
     def __getitem__(self, idx:int):
         idx = idx%len(self.IR)
         patch = torch.from_numpy(np.load(self.IR[idx])[self.channel_map[:self.IR_channel_level],:,:])
