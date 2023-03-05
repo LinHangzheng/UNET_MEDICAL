@@ -9,9 +9,9 @@ class CombinedLoss(nn.Module):
         self.epsilon = epsilon
 
     def forward(self, pred, target):
-        dice_loss, dice = CombinedLoss.soft_dice_loss_multiclass(pred.softmax(dim=1), target, pred.shape[1], self.epsilon)
+        dice_loss = CombinedLoss.soft_dice_loss_multiclass(pred.softmax(dim=1), target, pred.shape[1], self.epsilon)
         ce = self.cross_entropy_loss(pred, target)
-        return self.weight_dice * dice_loss + self.weight_ce * ce, dice, ce
+        return self.weight_dice * dice_loss + self.weight_ce * ce, 1-dice_loss, ce
         
     @staticmethod
     def soft_dice_loss_multiclass(pred, target, num_classes, epsilon=1e-6):
