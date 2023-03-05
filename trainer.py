@@ -106,16 +106,16 @@ class Trainer(object):
         self.set_wandb()
         dist.barrier()
         self.set_dataset()
-        self.timer.check('set_dataset')
+        self.timer.check(self.rank, 'set_dataset')
         self.set_network()
         self.set_optimizer()
-        self.timer.check('set_optimizer')
+        self.timer.check(self.rank, 'set_optimizer')
         self.set_criteria()
-        self.timer.check('set_criteria')
+        self.timer.check(self.rank, 'set_criteria')
         self.set_logger()
-        self.timer.check('set_logger')
+        self.timer.check(self.rank, 'set_logger')
         self.set_validator()
-        self.timer.check('set_validator')
+        self.timer.check(self.rank, 'set_validator')
 
         
     #######################
@@ -167,7 +167,7 @@ class Trainer(object):
         self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.train_data_loader = self.DatasetProcessor.create_dataloader(
                                     is_training=True,rank=self.rank)
-        self.timer.check('create_dataloader')
+        self.timer.check(self.rank, 'create_dataloader')
         log.info(f"Loaded dataset with size: {len(self.train_data_loader.dataset)}")
             
     def set_network(self):
@@ -293,7 +293,7 @@ class Trainer(object):
         self.log_dict['total_iter_count'] = 0
         self.log_dict['training_dice'] = 0
 
-        self.timer.check('pre_epoch done')
+        self.timer.check(self.rank, 'pre_epoch done')
 
     #######################
     # iterate
@@ -312,24 +312,24 @@ class Trainer(object):
             Override this function to change the per-iteration behaviour.
             """
             # Map to device
-            self.timer.check('inner_iter start')
+            self.timer.check(self.rank, 'inner_iter start')
             images = data[0].to(self.rank)
             labels = data[1].to(self.rank)
-            self.timer.check('send to device')
+            self.timer.check(self.rank, 'send to device')
             # Prepare for inference
             batch_size = images.shape[0]
             self.optimizer.zero_grad()
-            self.timer.check('optimizer reset')
+            self.timer.check(self.rank, 'optimizer reset')
             # Calculate loss
             preds = self.net(images)
             del images
-            self.timer.check('training')
+            self.timer.check(self.rank, 'training')
             # preds = rearrange(preds, 'b c h w -> (b h w) c')
             # labels = rearrange(labels, 'b h w -> (b h w)')
-            # self.timer.check('rearrange')
+            # self.timer.check(self.rank, 'rearrange')
             loss, dice, ce = self.loss(preds,labels)
             del preds, labels
-            self.timer.check('get loss')
+            self.timer.check(self.rank, 'get loss')
             # Update logs
             self.log_dict['cross_entropy_loss'] += ce.item()
             self.log_dict['total_loss'] += loss.item()*batch_size
@@ -337,11 +337,11 @@ class Trainer(object):
             self.log_dict['total_iter_count'] += batch_size
             
             loss /= batch_size
-            self.timer.check('log update')
+            self.timer.check(self.rank, 'log update')
             # Backpropagate
             loss.mean().backward()
             self.optimizer.step()
-            self.timer.check('inner done')
+            self.timer.check(self.rank, 'inner done')
     #######################
     # post_epoch
     #######################
@@ -363,7 +363,7 @@ class Trainer(object):
             if (epoch+1) % self.save_checkpoints_epoch == 0:
                 self.save_model(epoch)
             
-            self.timer.check('post_epoch done')
+            self.timer.check(self.rank, 'post_epoch done')
     
     #######################
     # post_epoch helper functions
@@ -431,25 +431,25 @@ class Trainer(object):
             return
 
         for epoch in range(self.epochs):    
-            self.timer.check('new epoch...')
+            self.timer.check(self.rank, 'new epoch...')
             
             self.pre_epoch(epoch)
 
             if self.train_data_loader is not None:
                 self.dataset_size = len(self.train_data_loader)
             
-            self.timer.check('iteration start')
+            self.timer.check(self.rank, 'iteration start')
 
             self.iterate(epoch)
 
-            self.timer.check('iterations done')
+            self.timer.check(self.rank, 'iterations done')
 
             self.post_epoch(epoch)
 
             if self.valid and (epoch+1) % self.valid_every == 0:
                 if self.rank ==0:
                     self.validate(epoch)
-                    self.timer.check('validate')
+                    self.timer.check(self.rank, 'validate')
                 torch.distributed.barrier()    
         self.cleanup()
         self.writer.close()

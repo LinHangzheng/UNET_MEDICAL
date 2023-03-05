@@ -37,7 +37,9 @@ class PerfTimer():
         self.end = torch.cuda.Event(enable_timing=True)
         self.prev_time_gpu = self.start.record()
 
-    def check(self, name=None):
+    def check(self, rank, name=None):
+        if rank !=0:
+            return None, None
         if self.activate:
             cpu_time = time.process_time() - self.prev_time
             cpu_time = colorize_time(cpu_time)
