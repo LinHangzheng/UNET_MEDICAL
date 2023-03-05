@@ -51,7 +51,7 @@ class Validator(object):
     def validate(self, epoch):
         """Geometric validation; sample surface points."""
         val_dict = {}
-        val_dict['DICE'] = []
+        val_dict['DICE'] = 0.
         val_dict['AUC'] = []
         total = 0
         # Uniform points metrics
