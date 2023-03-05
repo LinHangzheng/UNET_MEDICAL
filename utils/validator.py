@@ -46,10 +46,12 @@ class Validator(object):
         self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.val_data_loader = self.DatasetProcessor.create_dataloader(
                                     is_training=False)
+        print('batch_size: ', self.val_data_loader.batch_size) 
 
 
     def validate(self, epoch):
         """Geometric validation; sample surface points."""
+        print('enter validate class')
         val_dict = {}
         val_dict['DICE'] = []
         val_dict['AUC'] = []
@@ -57,13 +59,17 @@ class Validator(object):
         # Uniform points metrics
         self.net.eval() 
         for n_iter, data in enumerate(tqdm(self.val_data_loader)):
+            print('enter for loop')
             images = data[0].to(self.device)
             labels = data[1].to(self.device)
+            print(' get image and labels')
             with torch.no_grad():
                 preds = self.net(images)
+            print('get preds')
             if self.valid_only: 
                 plot_pred(n_iter*self.batch_size,self.num_class,images,labels,preds,self.plot_path)
             val_dict['DICE'] += compute_dice(preds, labels,self.num_class)*images.shape[0]
+            print('get DICE value')
             preds = rearrange(preds, 'b c h w -> (b h w) c')
             val_dict['AUC'] += [compute_auc(preds, labels, self.num_class,thresholds=self.threshold, device=self.device)]*images.shape[0]
             total += images.shape[0]
