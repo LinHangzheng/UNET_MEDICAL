@@ -273,7 +273,8 @@ class Trainer(object):
         """
         if self.valid and self.rank ==0:
             self.validator = Validator(self.params, self.rank, self.net)
-            log.info(f"Loaded validator with size: {len(self.validator.val_data_loader.dataset)}")            
+            log.info(f"Loaded validator with size: {len(self.validator.val_data_loader.dataset)}")       
+        dist.barrier()     
     #######################
     # pre_epoch
     #######################
