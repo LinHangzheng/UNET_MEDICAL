@@ -22,7 +22,10 @@ def colorize_time(elapsed):
         return "{:.3e}".format(elapsed)
     
 class PerfTimer():
-    def __init__(self, activate=False):
+    def __init__(self, rank, activate=False):
+        self.rank = rank
+        if rank != 0:
+            pass
         self.prev_time = time.process_time()
         self.start = torch.cuda.Event(enable_timing=True)
         self.end = torch.cuda.Event(enable_timing=True)
@@ -31,14 +34,16 @@ class PerfTimer():
         self.activate = activate
 
     def reset(self):
+        if self.rank !=0:
+            return
         self.counter = 0
         self.prev_time = time.process_time()
         self.start = torch.cuda.Event(enable_timing=True)
         self.end = torch.cuda.Event(enable_timing=True)
         self.prev_time_gpu = self.start.record()
 
-    def check(self, rank, name=None):
-        if rank !=0:
+    def check(self, name=None):
+        if self.rank !=0:
             return None, None
         if self.activate:
             cpu_time = time.process_time() - self.prev_time
