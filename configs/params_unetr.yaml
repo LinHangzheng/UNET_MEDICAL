@@ -37,7 +37,7 @@ train_input:
 eval_input:
     plot_path: "./out_unetr_5"
     threshold: null
-    batch_size: 38
+    batch_size: 19
 
 model:
     embed_dim: 768
@@ -74,8 +74,8 @@ runconfig:
     eval_steps: 100
     valid: True
     valid_only: False
-    valid_every: 2
+    valid_every: 10
     model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_5_16_768"
     save_as_new: False
-    world_size: 1
+    world_size: 2
     duplicate_act_worker_data: True

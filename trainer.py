@@ -129,7 +129,7 @@ class Trainer(object):
                                 world_size=self.world_size)
         
     def set_timer(self):
-        self.timer = PerfTimer(self.rank, activate=True)
+        self.timer = PerfTimer(self.rank, activate=False)
         self.timer.reset()
         
     def set_wandb(self):
@@ -457,9 +457,7 @@ class Trainer(object):
     #######################
 
     def validate(self, epoch):
-        print('enter validate')
         val_dict = self.validator.validate(epoch)
-        print('get validate dict')
         log_text = 'EPOCH {}/{}'.format(epoch+1, self.epochs)
         
         for k, v in val_dict.items():
