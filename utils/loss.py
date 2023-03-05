@@ -14,7 +14,8 @@ class CombinedLoss(nn.Module):
         dice_loss, dice = self.dice_loss(pred, target, self.smooth)
         ce = self.cross_entropy_loss(pred, target)
         return self.weight_dice * dice_loss + self.weight_ce * ce, dice, ce
-
+        
+    @staticmethod
     def dice_loss(self, pred, target, smooth):
         num_classes = pred.shape[1]
         dice = torch.zeros(num_classes, device=pred.device)
