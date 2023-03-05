@@ -1,5 +1,4 @@
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
 
 class CombinedLoss(nn.Module):
@@ -10,12 +9,12 @@ class CombinedLoss(nn.Module):
         self.smooth = smooth
 
     def forward(self, pred, target):
-        pred = pred.softmax(dim=1)
-        dice_loss, dice = self.dice_loss(pred, target, self.smooth)
+        dice_loss, dice = CombinedLoss.dice_loss(pred.softmax(dim=1), target, self.smooth)
         ce = self.cross_entropy_loss(pred, target)
         return self.weight_dice * dice_loss + self.weight_ce * ce, dice, ce
-
-    def dice_loss(self, pred, target, smooth):
+    
+    @staticmethod
+    def dice_loss(pred, target, smooth):
         num_classes = pred.shape[1]
         dice = torch.zeros(num_classes, device=pred.device)
         for c in range(num_classes):
@@ -26,4 +25,5 @@ class CombinedLoss(nn.Module):
         return 1.0 - dice.mean(), dice
 
     def cross_entropy_loss(self, pred, target):
-        return F.cross_entropy(pred, target)
+        loss = nn.CrossEntropyLoss()
+        return loss(pred,target)

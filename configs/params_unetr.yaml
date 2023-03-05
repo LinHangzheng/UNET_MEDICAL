@@ -19,35 +19,34 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    data_dir: 'data' # Place to store data
+    data_dir: '/raid/projects/hangzheng/data' # Place to store data
     shuffle: True
     shuffle_seed: 2
     num_parallel_calls: 0   # 0 means AUTOTUNE
     num_classes: 11
-    # IR_threshould: 0.18
-    image_shape: [224,224] #128
+    image_shape: [512,512] #128
     dataset: "IR_dataset"
     IR_channel_level: 5 # up to 17
     noise_variance: 0
     augment_data: True
-    batch_size: 2
-    num_workers: 0
+    batch_size: 16
+    num_workers: 64
     drop_last: False
     prefetch_factor: 4
 
 eval_input:
     plot_path: "./out_unetr_5"
     threshold: null
-    batch_size: 76
+    batch_size: 38
 
 model:
-    embed_dim: 128
-    patch_size: 4
-    num_heads: 16
+    embed_dim: 768
+    patch_size: 16
+    num_heads: 12
     dropout: 0.1
     mlp_hidden: 512
-    num_layers: 2
-    ext_layers: [1,2] #[3, 6, 9, 12]
+    num_layers: 12
+    ext_layers: [3,6,9,12] #[3, 6, 9, 12]
 
 optimizer:
     lr: 0.0001
@@ -56,22 +55,11 @@ optimizer:
     weight_decay_rate: 5e-5
     epsilon: 1e-6
     max_gradient_norm: 1.0
-    disable_lr_steps_reset: True
-    learning_rate:
-        - steps: 10000
-          scheduler: 'Linear'
-          initial_learning_rate: 0.0
-          end_learning_rate: 0.0001
-        - scheduler: 'Linear'
-          initial_learning_rate: 0.0001
-          end_learning_rate: 0.0
-          steps: 1000000
-    loss_scaling_factor: 'dynamic'
 
 
 runconfig:
     model_type: "UNETR"
-    logs: 'checkpoints/UNETR/channel_5_20_768'
+    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_5_16_768'
     pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: True
@@ -84,10 +72,10 @@ runconfig:
     multireplica: False
     mode: 'train'
     eval_steps: 100
-    valid: False
+    valid: True
     valid_only: False
     valid_every: 2
-    model_path: "checkpoints/UNETR/channel_5_20_768"
+    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_5_16_768"
     save_as_new: False
     world_size: 1
     duplicate_act_worker_data: True

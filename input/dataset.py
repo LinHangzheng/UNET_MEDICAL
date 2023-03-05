@@ -34,9 +34,10 @@ class IRDataset(VisionDataset):
         
     def __len__(self):
         if self.split == 'train':
-            return len(self.IR)*100
+            return len(self.IR)*10
         else:
             return len(self.IR)
+        #return len(self.IR)
 
     def __getitem__(self, idx:int):
         idx = idx%len(self.IR)
@@ -61,8 +62,7 @@ class IRDatasetProcessor(VisionDataset):
         if self.shuffle_seed:
             torch.manual_seed(self.shuffle_seed)
 
-        self.augment_data = params["train_input"].get("augment_data", True)
-        self.batch_size = params["train_input"]["batch_size"]
+        self.augment_data = params["train_input"].get("augment_data", True) 
         self.shuffle = params["train_input"].get("shuffle", True)
 
         # Multi-processing params.
@@ -91,6 +91,7 @@ class IRDatasetProcessor(VisionDataset):
 
     def create_dataloader(self, is_training=False, rank=0):
         self.is_training = is_training
+        batch_size = self.params["train_input"]["batch_size"] if is_training else self.params["eval_input"]["batch_size"]
         dataset = self.create_dataset(is_training)
         generator_fn = torch.Generator(device='cpu')
         if self.shuffle_seed is not None:
@@ -119,7 +120,7 @@ class IRDatasetProcessor(VisionDataset):
         if self.num_workers:
             dataloader = dataloader_fn(
                 dataset,
-                batch_size=self.batch_size,
+                batch_size=batch_size,
                 num_workers=self.num_workers,
                 prefetch_factor=self.prefetch_factor,
                 persistent_workers=self.persistent_workers,
@@ -130,7 +131,7 @@ class IRDatasetProcessor(VisionDataset):
         else:
             dataloader = dataloader_fn(
                 dataset,
-                batch_size=self.batch_size,
+                batch_size=batch_size,
                 drop_last=self.drop_last,
                 generator=generator_fn,
                 sampler=data_sampler,
