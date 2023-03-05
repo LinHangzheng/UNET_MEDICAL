@@ -11,6 +11,7 @@ from input import IRDatasetProcessor
 import torch.distributed as dist
 from collections import OrderedDict
 import wandb
+from tqdm import tqdm
 # from einops import rearrange
 
 class Trainer(object):
@@ -81,8 +82,12 @@ class Trainer(object):
         self.world_size = params["runconfig"]["world_size"]
         self.mode = params["runconfig"]["mode"]
         self.find_unused_parameters = params["runconfig"]["find_unused_parameters"]
-        self.timer = PerfTimer(activate=False)
-        self.timer.reset()
+        
+        dist.init_process_group("lhz", rank=rank, world_size=world_size)
+        if rank == 0:
+            self.timer = PerfTimer(activate=False)
+            self.timer.reset()
+        dist.barrier()
         self.rank = rank
         # Set device to use
         self.use_cuda = torch.cuda.is_available()
@@ -121,12 +126,11 @@ class Trainer(object):
         
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = self.ip
-        dist.init_process_group("nccl", rank=rank, world_size=world_size)
-        
-    def set_wandb(self):
         if self.rank ==0:
             wandb.init(name=self.wandb, project="holli", entity="hangzheng", mode=None if self.wandb else "disabled" ) #,mode="disabled"
-           # wandb.config.update = {
+    
+
+        # wandb.config.update = {
             #    "learning_rate": self.lr,
              #   "epochs": self.epochs,
              #   "batch_size": self.batch_size,
@@ -302,7 +306,7 @@ class Trainer(object):
         # if we are using DistributedSampler, we have to tell it which epoch this is
         if self.world_size > 1:
             self.train_data_loader.sampler.set_epoch(epoch)
-        for n_iter, data in enumerate(self.train_data_loader):
+        for n_iter, data in enumerate(tqdm(self.train_data_loader)):
             
             """
             Override this function to change the per-iteration behaviour.
@@ -318,11 +322,13 @@ class Trainer(object):
             self.timer.check('optimizer reset')
             # Calculate loss
             preds = self.net(images)
+            del images
             self.timer.check('training')
             # preds = rearrange(preds, 'b c h w -> (b h w) c')
             # labels = rearrange(labels, 'b h w -> (b h w)')
             # self.timer.check('rearrange')
             loss, dice, ce = self.loss(preds,labels)
+            del preds, labels
             self.timer.check('get loss')
             # Update logs
             self.log_dict['cross_entropy_loss'] += ce.item()
@@ -371,11 +377,13 @@ class Trainer(object):
 
         log_text = 'EPOCH {}/{}'.format(epoch+1, self.epochs)
         self.log_dict['total_loss'] /= self.log_dict['total_iter_count'] + 1e-6
-        self.log_dict['training_acu'] /= self.log_dict['total_iter_count'] + 1e-6
+        self.log_dict['training_dice'] /= self.log_dict['total_iter_count'] + 1e-6
         log_text += ' | total loss: {:>.3E}'.format(self.log_dict['total_loss'])
-        log_text += ' | training acu {}'.format(self.log_dict['training_acu'])
+        log_text += ' | training dice {}'.format(self.log_dict['training_dice'].mean())
+        log_text += ' | cross_entropy_loss {}'.format(self.log_dict['cross_entropy_loss'])
         wandb.log({"total loss": self.log_dict['total_loss'],
-                   "training acurracy": self.log_dict['training_acu']})
+                   "training dice": self.log_dict['training_dice'].mean(),
+                   "cross entropy_loss": self.log_dict['cross_entropy_loss']})
         log.info(log_text)
 
         # Log losses
@@ -417,7 +425,9 @@ class Trainer(object):
         """
 
         if self.valid and self.valid_only:
-            self.validate(0)
+            if self.rank ==0:
+                self.validate(0)
+            torch.distributed.barrier() 
             return
 
         for epoch in range(self.epochs):    
@@ -436,10 +446,11 @@ class Trainer(object):
 
             self.post_epoch(epoch)
 
-            if self.rank ==0 and self.valid and (epoch+1) % self.valid_every == 0:
-                 self.validate(epoch)
-                 self.timer.check('validate')
-                
+            if self.valid and (epoch+1) % self.valid_every == 0:
+                if self.rank ==0:
+                    self.validate(epoch)
+                    self.timer.check('validate')
+                torch.distributed.barrier()    
         self.cleanup()
         self.writer.close()
     

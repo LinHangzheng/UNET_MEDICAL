@@ -25,7 +25,9 @@ import os
 from input import IRDatasetProcessor
 from .metric import compute_acu, compute_auc, plot_roc
 from .image_plot import plot_pred
+from .loss import CombinedLoss
 from einops import rearrange
+from tqdm import tqdm
 class Validator(object):
     """Geometric validation; sample 3D points for distance/occupancy metrics."""
 
@@ -49,31 +51,32 @@ class Validator(object):
     def validate(self, epoch):
         """Geometric validation; sample surface points."""
         val_dict = {}
-        val_dict['ACU'] = []
+        val_dict['DICE'] = []
         val_dict['AUC'] = []
         total = 0
         # Uniform points metrics
-        
-        for n_iter, data in enumerate(self.val_data_loader):
+        self.net.eval() 
+        for n_iter, data in enumerate(tqdm(self.val_data_loader)):
             images = data[0].to(self.device)
             labels = data[1].to(self.device)
-            
-            preds = self.net(images)
+            with torch.no_grad():
+                preds = self.net(images)
             if self.valid_only: 
                 plot_pred(n_iter*self.batch_size,self.num_class,images,labels,preds,self.plot_path)
+            val_dict['DICE'] += [CombinedLoss.dice_loss(preds.softmax(dim=1), labels,1)[1]]*images.shape[0]
             preds = rearrange(preds, 'b c h w -> (b h w) c')
-            val_dict['ACU'] += [compute_acu(preds, labels, self.num_class)]*images.shape[0]
             val_dict['AUC'] += [compute_auc(preds, labels, self.num_class,thresholds=self.threshold, device=self.device)]*images.shape[0]
             total += images.shape[0]
-        val_dict['ACU'] = torch.stack(val_dict['ACU'])
+            
+        val_dict['DICE'] = torch.stack(val_dict['DICE'])
         val_dict['AUC'] = torch.stack(val_dict['AUC'])
         
-        val_dict['ACU'] = torch.sum(val_dict['ACU'],axis=0)/total
+        val_dict['DICE'] = torch.sum(val_dict['DICE'],axis=0)/total
         val_dict['AUC'] = torch.sum(val_dict['AUC'],axis=0)/total
         for i in range(self.num_class):
-            val_dict[f'ACU_{i+1}'] = val_dict['ACU'][i]
+            val_dict[f'DICE_{i+1}'] = val_dict['DICE'][i]
             val_dict[f'AUC_{i+1}'] = val_dict['AUC'][i]
-        val_dict['ACU'] = val_dict['ACU'][-1]
+        val_dict['DICE'] = val_dict['DICE'].mean()
         val_dict['AUC'] = torch.mean(val_dict['AUC'])
         if self.valid_only:
             plot_roc(preds,labels,self.num_class,"ROC_figure.jpg")
@@ -82,11 +85,11 @@ class Validator(object):
                     auc = val_dict[f'AUC_{i+1}']
                     f.write(f"{auc}\n")
                 f.write(f"{val_dict['AUC']}")
-                f.write("\n")
+                f.write("\n\n")
                 for i in range(self.num_class):
-                    acu = val_dict[f'ACU_{i+1}']
-                    f.write(f"{acu}\n")
-                f.write(f"{val_dict['ACU']}")
+                    dice = val_dict[f'DICE_{i+1}']
+                    f.write(f"{dice}\n")
+                f.write(f"{val_dict['DICE']}")
         return val_dict
 
     
