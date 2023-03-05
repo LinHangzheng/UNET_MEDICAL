@@ -104,7 +104,6 @@ class Trainer(object):
         self.set_process()
         self.set_timer()
         self.set_wandb()
-        dist.barrier()
         self.set_dataset()
         self.timer.check('set_dataset')
         self.set_network()
@@ -426,7 +425,6 @@ class Trainer(object):
         if self.valid and self.valid_only:
             if self.rank ==0:
                 self.validate(0)
-            torch.distributed.barrier() 
             return
 
         for epoch in range(self.epochs):    
@@ -449,7 +447,6 @@ class Trainer(object):
                 if self.rank ==0:
                     self.validate(epoch)
                     self.timer.check('validate')
-                torch.distributed.barrier()    
         self.cleanup()
         self.writer.close()
     
