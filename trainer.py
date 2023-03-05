@@ -124,7 +124,7 @@ class Trainer(object):
         
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = self.ip
-        dist.init_process_group("gloo", 
+        dist.init_process_group("nccl", 
                                 rank=self.rank, 
                                 world_size=self.world_size)
         
@@ -448,7 +448,7 @@ class Trainer(object):
                 if self.rank ==0:
                     self.validate(epoch)
                     self.timer.check('validate')
-                torch.distributed.barrier()    
+                dist.barrier()    
         self.cleanup()
         self.writer.close()
     
