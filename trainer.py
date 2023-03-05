@@ -463,11 +463,11 @@ class Trainer(object):
         val_dict = self.validator.validate(epoch)
         
         log_text = 'EPOCH {}/{}'.format(epoch+1, self.epochs)
-
+        
         for k, v in val_dict.items():
             self.writer.add_scalar(f'Validation/{k}', v, epoch)
             log_text += ' | {}: {:.6f}'.format(k, v)
-            wandb.log({k: v})
+        wandb.log(val_dict.items())
         log.info(log_text)
     
     def cleanup(self):
