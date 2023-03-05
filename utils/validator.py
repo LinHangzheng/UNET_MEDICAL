@@ -23,7 +23,7 @@ import torch
 import os
 
 from input import IRDatasetProcessor
-from .metric import compute_acu, compute_auc, plot_roc
+from .metric import compute_acu, compute_auc, plot_roc, compute_dice
 from .image_plot import plot_pred
 from .loss import CombinedLoss
 from einops import rearrange
@@ -63,20 +63,17 @@ class Validator(object):
                 preds = self.net(images)
             if self.valid_only: 
                 plot_pred(n_iter*self.batch_size,self.num_class,images,labels,preds,self.plot_path)
-            val_dict['DICE'] += [CombinedLoss.dice_loss(preds.softmax(dim=1), labels,1)[1]]*images.shape[0]
+            val_dict['DICE'] += compute_dice(preds, labels,self.num_class)*images.shape[0]
             preds = rearrange(preds, 'b c h w -> (b h w) c')
             val_dict['AUC'] += [compute_auc(preds, labels, self.num_class,thresholds=self.threshold, device=self.device)]*images.shape[0]
             total += images.shape[0]
             
-        val_dict['DICE'] = torch.stack(val_dict['DICE'])
         val_dict['AUC'] = torch.stack(val_dict['AUC'])
         
-        val_dict['DICE'] = torch.sum(val_dict['DICE'],axis=0)/total
+        val_dict['DICE'] /= total
         val_dict['AUC'] = torch.sum(val_dict['AUC'],axis=0)/total
         for i in range(self.num_class):
-            val_dict[f'DICE_{i+1}'] = val_dict['DICE'][i]
             val_dict[f'AUC_{i+1}'] = val_dict['AUC'][i]
-        val_dict['DICE'] = val_dict['DICE'].mean()
         val_dict['AUC'] = torch.mean(val_dict['AUC'])
         if self.valid_only:
             plot_roc(preds,labels,self.num_class,"ROC_figure.jpg")
@@ -86,9 +83,6 @@ class Validator(object):
                     f.write(f"{auc}\n")
                 f.write(f"{val_dict['AUC']}")
                 f.write("\n\n")
-                for i in range(self.num_class):
-                    dice = val_dict[f'DICE_{i+1}']
-                    f.write(f"{dice}\n")
                 f.write(f"{val_dict['DICE']}")
         return val_dict
 

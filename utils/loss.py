@@ -9,20 +9,39 @@ class CombinedLoss(nn.Module):
         self.smooth = smooth
 
     def forward(self, pred, target):
-        dice_loss, dice = CombinedLoss.dice_loss(pred.softmax(dim=1), target, self.smooth)
+        dice_loss, dice = CombinedLoss.soft_dice_loss_multiclass(pred.softmax(dim=1), target, self.smooth)
         ce = self.cross_entropy_loss(pred, target)
         return self.weight_dice * dice_loss + self.weight_ce * ce, dice, ce
         
     @staticmethod
-    def dice_loss(pred, target, smooth):
-        num_classes = pred.shape[1]
-        dice = torch.zeros(num_classes, device=pred.device)
-        for c in range(num_classes):
-            p = pred[:,c,:,:]
-            t = (target == c).float()
-            intersection = (p * t).sum()
-            dice[c] = (2. * intersection + smooth) / (p.sum() + t.sum() + smooth)
-        return 1.0 - dice.mean(), dice
+    def soft_dice_loss_multiclass(pred, target, num_classes, epsilon=1e-6):
+        """
+        Compute the Soft Dice Loss for multi-class segmentation between target and pred.
+
+        Args:
+            target: ground truth tensor with shape [batch_size, num_classes, H, W]
+            pred: predicted tensor with shape [batch_size, num_classes, H, W]
+            num_classes: number of classes in the segmentation task
+            epsilon: a small constant to avoid division by zero
+
+        Returns:
+            Soft Dice Loss for multi-class segmentation
+        """
+        total_soft_dice_loss = 0.
+
+        for i in range(num_classes):
+            # compute soft dice loss for each class
+            intersection = torch.sum(target[:, i, :, :] * pred[:, i, :, :], dim=(1,2))
+            target_volume = torch.sum(target[:, i, :, :] ** 2, dim=(1,2))
+            pred_volume = torch.sum(pred[:, i, :, :] ** 2, dim=(1,2))
+            union = target_volume + pred_volume + epsilon
+            soft_dice = (2. * intersection + epsilon) / union
+            soft_dice_loss = 1. - torch.mean(soft_dice)
+            total_soft_dice_loss += soft_dice_loss
+
+        return total_soft_dice_loss / num_classes
+
+
 
     def cross_entropy_loss(self, pred, target):
         loss = nn.CrossEntropyLoss()
