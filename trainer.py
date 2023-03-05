@@ -121,7 +121,7 @@ class Trainer(object):
     #######################
     # __init__ helper functions
     #######################
-    def set_process(self, world_size):
+    def set_process(self):
         
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = self.ip
