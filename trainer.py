@@ -83,11 +83,8 @@ class Trainer(object):
         self.mode = params["runconfig"]["mode"]
         self.find_unused_parameters = params["runconfig"]["find_unused_parameters"]
         
-        dist.init_process_group("lhz", rank=rank, world_size=world_size)
-        if rank == 0:
-            self.timer = PerfTimer(activate=False)
-            self.timer.reset()
-        dist.barrier()
+        
+        
         self.rank = rank
         # Set device to use
         self.use_cuda = torch.cuda.is_available()
@@ -104,8 +101,10 @@ class Trainer(object):
         self.log_dict = {}
 
         # Initialize
-        self.set_process(self.rank, self.world_size)
+        self.set_process()
+        self.set_timer()
         self.set_wandb()
+        dist.barrier()
         self.set_dataset()
         self.timer.check('set_dataset')
         self.set_network()
@@ -122,24 +121,25 @@ class Trainer(object):
     #######################
     # __init__ helper functions
     #######################
-    def set_process(self,rank, world_size):
+    def set_process(self, world_size):
         
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = self.ip
+        dist.init_process_group("lhz", 
+                                rank=self.rank, 
+                                world_size=self.world_size)
+        
+    def set_timer(self):
+        if self.rank == 0:
+            self.timer = PerfTimer(activate=False)
+            self.timer.reset()
+        
+    def set_wandb(self):
         if self.rank ==0:
-            wandb.init(name=self.wandb, project="holli", entity="hangzheng", mode=None if self.wandb else "disabled" ) #,mode="disabled"
-    
-
-        # wandb.config.update = {
-            #    "learning_rate": self.lr,
-             #   "epochs": self.epochs,
-             #   "batch_size": self.batch_size,
-             #   "image_shape":self.image_shape,
-             #   "weight_decay_rate":self.weight_decay_rate,
-             #   "world_size": self.world_size,
-             #   "device_name": self.device_name,
-             #   "model_type": self.model_type
-             #   }
+            wandb.init(name=self.wandb, 
+                       project="holli",
+                       entity="hangzheng", 
+                       mode=None if self.wandb else "disabled" ) #,mode="disabled"
             wandb.config.update = self.params
         
     def set_dataset(self):
