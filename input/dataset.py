@@ -99,7 +99,7 @@ class IRDatasetProcessor(VisionDataset):
 
         data_sampler = torch.utils.data.SequentialSampler(dataset)
 
-        if self.world_size > 1:
+        if self.world_size > 1 and is_training:
             data_sampler = DistributedSampler(dataset,
                         num_replicas=self.world_size, 
                         rank=rank, 
