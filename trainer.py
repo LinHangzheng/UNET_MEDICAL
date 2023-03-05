@@ -252,8 +252,7 @@ class Trainer(object):
         weight_dice = 1/(1+self.loss_lambda)
         weight_ce = 1-weight_dice
         self.loss = CombinedLoss(weight_dice=weight_dice,
-                                 weight_ce=weight_ce,
-                                 smooth=1)
+                                 weight_ce=weight_ce)
         
     def set_logger(self):
         """

@@ -2,14 +2,14 @@ import torch.nn as nn
 import torch
 
 class CombinedLoss(nn.Module):
-    def __init__(self, weight_dice=0.5, weight_ce=0.5, smooth=1.0):
+    def __init__(self, weight_dice=0.5, weight_ce=0.5, epsilon=1e-6):
         super(CombinedLoss, self).__init__()
         self.weight_dice = weight_dice
         self.weight_ce = weight_ce
-        self.smooth = smooth
+        self.epsilon = epsilon
 
     def forward(self, pred, target):
-        dice_loss, dice = CombinedLoss.soft_dice_loss_multiclass(pred.softmax(dim=1), target, self.smooth)
+        dice_loss, dice = CombinedLoss.soft_dice_loss_multiclass(pred.softmax(dim=1), target, pred.shape[1], self.epsilon)
         ce = self.cross_entropy_loss(pred, target)
         return self.weight_dice * dice_loss + self.weight_ce * ce, dice, ce
         
