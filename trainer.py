@@ -125,7 +125,7 @@ class Trainer(object):
         
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = self.ip
-        dist.init_process_group("lhz", 
+        dist.init_process_group("gloo", 
                                 rank=self.rank, 
                                 world_size=self.world_size)
         
