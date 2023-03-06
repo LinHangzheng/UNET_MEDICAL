@@ -57,6 +57,7 @@ class Validator(object):
         # Uniform points metrics
         self.net.eval() 
         preds_total = []
+        labels_total = []
         for n_iter, data in enumerate(tqdm(self.val_data_loader)):
             images = data[0].to(self.device)
             labels = data[1].to(self.device)
@@ -65,8 +66,10 @@ class Validator(object):
             if self.valid_only: 
                 plot_pred(n_iter*self.batch_size,self.num_class,images,labels,preds,self.plot_path)
             preds_total.append(preds)
+            labels_total.append(labels)
             total += images.shape[0]
         preds = torch.cat(preds_total,dim=0)
+        labels = torch.cat(labels_total,dim=0)
         val_dict['DICE'] += compute_dice(preds, labels,self.num_class)
         preds = rearrange(preds, 'b c h w -> (b h w) c')
         val_dict['AUC'] += [compute_auc(preds, labels, self.num_class,thresholds=self.threshold, device=self.device)]
