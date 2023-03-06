@@ -70,7 +70,7 @@ class Validator(object):
             total += images.shape[0]
         preds = torch.cat(preds_total,dim=0)
         labels = torch.cat(labels_total,dim=0)
-        val_dict['DICE'] += compute_dice(preds, labels,self.num_class)
+        val_dict['DICE'] += compute_dice(preds.softmax(dim=1), labels,self.num_class)
         preds = rearrange(preds, 'b c h w -> (b h w) c')
         val_dict['AUC'] += [compute_auc(preds, labels, self.num_class,thresholds=self.threshold, device=self.device)]
         val_dict['AUC'] = torch.stack(val_dict['AUC'])
