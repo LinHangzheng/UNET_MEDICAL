@@ -19,7 +19,7 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    data_dir: 'data' # Place to store data
+    data_dir: '/raid/projects/hangzheng/data' # Place to store data
     shuffle: True
     shuffle_seed: 2
     num_parallel_calls: 0   # 0 means AUTOTUNE
@@ -40,6 +40,7 @@ eval_input:
     plot_path: "./out_unet_5"
     batch_size: 16
     threshold: null
+
 model:
     classes_num: 11
     layer_norm_epsilon: 1.0e-05
@@ -49,6 +50,7 @@ model:
 
 optimizer:
     lr: 0.0001
+    loss_lambda: 0.01
     optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 5e-5
     epsilon: 1e-6
@@ -69,8 +71,8 @@ runconfig:
     model_dir: 'model_dir'
     multireplica: False
     mode: 'train'
-    valid: False
-    valid_only: False
+    valid: True
+    valid_only: True
     valid_every: 20
     model_path: "/raid/projects/hangzheng/checkpoints/UNet/channel_5"
     save_as_new: False
