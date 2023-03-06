@@ -63,7 +63,7 @@ class Validator(object):
                 preds = self.net(images)
             if self.valid_only: 
                 plot_pred(n_iter*self.batch_size,self.num_class,images,labels,preds,self.plot_path)
-            val_dict['DICE'] += compute_dice(preds, labels,self.num_class)*images.shape[0]
+            val_dict['DICE'] += compute_dice(preds.softmax(dim=1), labels,self.num_class)*images.shape[0]
             preds = rearrange(preds, 'b c h w -> (b h w) c')
             val_dict['AUC'] += [compute_auc(preds, labels, self.num_class,thresholds=self.threshold, device=self.device)]*images.shape[0]
             total += images.shape[0]

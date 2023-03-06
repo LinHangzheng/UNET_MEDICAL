@@ -447,8 +447,7 @@ class Trainer(object):
             if self.valid and (epoch+1) % self.valid_every == 0:
                 if self.rank ==0:
                     self.validate(epoch)
-                    self.timer.check('validate')
-                dist.barrier()    
+                    self.timer.check('validate')    
         self.cleanup()
         self.writer.close()
     
@@ -459,11 +458,12 @@ class Trainer(object):
     def validate(self, epoch):
         val_dict = self.validator.validate(epoch)
         log_text = 'EPOCH {}/{}'.format(epoch+1, self.epochs)
-        
+        wandb_dict = {}
         for k, v in val_dict.items():
             self.writer.add_scalar(f'Validation/{k}', v, epoch)
             log_text += ' | {}: {:.6f}'.format(k, v)
-        wandb.log(val_dict.items())
+            wandb_dict[k] = v
+        wandb.log(wandb_dict)
         log.info(log_text)
     
     def cleanup(self):
