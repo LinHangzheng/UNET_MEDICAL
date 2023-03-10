@@ -69,6 +69,7 @@ def plot_roc(pre, labels, num_classes, save_path, thresholds=None):
     metric = MulticlassROC(num_classes=num_classes, thresholds=thresholds)
     fpr, tpr, thresholds = metric(pre, y)
     plt.figure()
+    print("start plotting")
     for i in range(num_classes):
         plt.plot(fpr[i].cpu(),tpr[i].cpu(),color=slicedCM[i],label=f"ROC_{i+1}")
     plt.title('ROC')

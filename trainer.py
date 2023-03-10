@@ -134,8 +134,8 @@ class Trainer(object):
         
     def set_wandb(self):
         if self.rank ==0:
-            wandb.init(name=self.wandb, 
-                       project="holli",
+            wandb.init(group=self.wandb, 
+                       project="tissue",
                        entity="hangzheng", 
                        mode=None if self.wandb else "disabled" ) #,mode="disabled"
             wandb.config.update = self.params
@@ -448,6 +448,7 @@ class Trainer(object):
                 if self.rank ==0:
                     self.validate(epoch)
                     self.timer.check('validate')    
+        torch.distributed.barrier()
         self.cleanup()
         self.writer.close()
     
