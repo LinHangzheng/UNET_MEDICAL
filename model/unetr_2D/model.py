@@ -248,10 +248,10 @@ class UNETR(nn.Module):
                 Conv2dBlock(64, 64),
                 nn.Conv2d(64, output_dim, kernel_size=1),
             )
-        self.Att5 = Attention_block(F_g=512,F_l=512,F_int=256)
-        self.Att4 = Attention_block(F_g=256,F_l=256,F_int=128)
+        self.Att9 = Attention_block(F_g=512,F_l=512,F_int=256)
+        self.Att6 = Attention_block(F_g=256,F_l=256,F_int=128)
         self.Att3 = Attention_block(F_g=128,F_l=128,F_int=64)
-        self.Att2 = Attention_block(F_g=64,F_l=64,F_int=32)
+        self.Att0 = Attention_block(F_g=64,F_l=64,F_int=32)
 
     def forward(self, x):
         z = self.transformer(x)
@@ -263,11 +263,11 @@ class UNETR(nn.Module):
 
         z12 = self.decoder12_upsampler(z12)
         z9 = self.decoder9(z9)
-        z9 = self.decoder9_upsampler(torch.cat([self.Att5(z12,z9), z12], dim=1))
+        z9 = self.decoder9_upsampler(torch.cat([self.Att9(z12,z9), z12], dim=1))
         z6 = self.decoder6(z6)
-        z6 = self.decoder6_upsampler(torch.cat([self.Att5(z9,z6), z9], dim=1))
+        z6 = self.decoder6_upsampler(torch.cat([self.Att6(z9,z6), z9], dim=1))
         z3 = self.decoder3(z3)
-        z3 = self.decoder3_upsampler(torch.cat([self.Att5(z6,z3), z6], dim=1))
+        z3 = self.decoder3_upsampler(torch.cat([self.Att3(z6,z3), z6], dim=1))
         z0 = self.decoder0(z0)
-        output = self.decoder0_header(torch.cat([self.Att5(z3,z0), z3], dim=1))
+        output = self.decoder0_header(torch.cat([self.Att0(z3,z0), z3], dim=1))
         return output
