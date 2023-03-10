@@ -71,7 +71,6 @@ class Validator(object):
         val_dict['DICE'] = compute_dice(preds.softmax(dim=1), labels,self.num_class)
         preds = rearrange(preds, 'b c h w -> (b h w) c')
         val_dict['AUC'] = [compute_auc(preds, labels, self.num_class,thresholds=self.threshold, device=self.device)]
-        print(val_dict['AUC'])
         val_dict['AUC'] = torch.stack(val_dict['AUC'])
         val_dict['AUC'] = torch.sum(val_dict['AUC'],axis=0)
         for i in range(self.num_class):
