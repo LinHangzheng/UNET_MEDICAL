@@ -35,14 +35,14 @@ train_input:
     prefetch_factor: 4
 
 eval_input:
-    plot_path: "./out_unetr_5"
+    plot_path: "./out_unetr_4"
     threshold: null
-    batch_size: 38
+    batch_size: 19
 
 model:
-    embed_dim: 768
+    embed_dim: 512
     patch_size: 16
-    num_heads: 12
+    num_heads: 16
     dropout: 0.1
     mlp_hidden: 512
     num_layers: 4
@@ -50,7 +50,7 @@ model:
 
 optimizer:
     lr: 0.0001
-    loss_lambda: 10
+    loss_lambda: 0.1
     optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 5e-5
     epsilon: 1e-6
@@ -59,7 +59,7 @@ optimizer:
 
 runconfig:
     model_type: "UNETR"
-    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_5_16_768'
+    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_5'
     pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: True
@@ -74,8 +74,8 @@ runconfig:
     eval_steps: 100
     valid: True
     valid_only: False
-    valid_every: 2
-    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_5_16_768"
+    valid_every: 1
+    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_5"
     save_as_new: False
     world_size: 1
     duplicate_act_worker_data: True
