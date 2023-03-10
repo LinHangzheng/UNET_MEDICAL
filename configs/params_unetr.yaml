@@ -59,7 +59,7 @@ optimizer:
 
 runconfig:
     model_type: "UNETR"
-    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_5'
+    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_5_gate'
     pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: True
@@ -75,7 +75,7 @@ runconfig:
     valid: True
     valid_only: False
     valid_every: 1
-    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_5"
+    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_5_gate"
     save_as_new: False
-    world_size: 1
+    world_size: 2
     duplicate_act_worker_data: True
