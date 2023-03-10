@@ -24,13 +24,13 @@ train_input:
     shuffle_seed: 2
     num_parallel_calls: 0   # 0 means AUTOTUNE
     num_classes: 11
-    image_shape: [512,512] #128
+    image_shape: [224,224] #128
     dataset: "IR_dataset"
     IR_channel_level: 5 # up to 17
     noise_variance: 0
     augment_data: True
-    batch_size: 16
-    num_workers: 64
+    batch_size: 2
+    num_workers: 0
     drop_last: False
     prefetch_factor: 4
 
@@ -45,8 +45,8 @@ model:
     num_heads: 12
     dropout: 0.1
     mlp_hidden: 512
-    num_layers: 12
-    ext_layers: [3,6,9,12] #[3, 6, 9, 12]
+    num_layers: 4
+    ext_layers: [1,2,3,4] #[3, 6, 9, 12]
 
 optimizer:
     lr: 0.0001
