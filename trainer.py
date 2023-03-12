@@ -304,7 +304,7 @@ class Trainer(object):
         # if we are using DistributedSampler, we have to tell it which epoch this is
         if self.world_size > 1:
             self.train_data_loader.sampler.set_epoch(epoch)
-        for n_iter, data in enumerate(tqdm(self.train_data_loader)):
+        for n_iter, data in enumerate(self.train_data_loader):
             
             """
             Override this function to change the per-iteration behaviour.

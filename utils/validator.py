@@ -27,7 +27,7 @@ from .metric import compute_acu, compute_auc, plot_roc, compute_dice
 from .image_plot import plot_pred
 from .loss import CombinedLoss
 from einops import rearrange
-from tqdm import tqdm
+#from tqdm import tqdm
 class Validator(object):
     """Geometric validation; sample 3D points for distance/occupancy metrics."""
 
@@ -56,7 +56,7 @@ class Validator(object):
         self.net.eval() 
         preds_total = []
         labels_total = []
-        for n_iter, data in enumerate(tqdm(self.val_data_loader)):
+        for n_iter, data in enumerate(self.val_data_loader):
             images = data[0].to(self.device)
             labels = data[1].to(self.device)
             with torch.no_grad():

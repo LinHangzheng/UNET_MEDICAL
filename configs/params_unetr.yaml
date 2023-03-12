@@ -29,8 +29,8 @@ train_input:
     IR_channel_level: 5 # up to 17
     noise_variance: 0
     augment_data: True
-    batch_size: 2
-    num_workers: 0
+    batch_size: 64
+    num_workers: 64
     drop_last: False
     prefetch_factor: 4
 
@@ -45,12 +45,12 @@ model:
     num_heads: 16
     dropout: 0.1
     mlp_hidden: 512
-    num_layers: 4
-    ext_layers: [1,2,3,4] #[3, 6, 9, 12]
+    num_layers: 12
+    ext_layers: [3,6,9,12] #[3, 6, 9, 12]
 
 optimizer:
     lr: 0.0001
-    loss_lambda: 0.1
+    loss_lambda: 10
     optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 5e-5
     epsilon: 1e-6
@@ -74,7 +74,7 @@ runconfig:
     eval_steps: 100
     valid: True
     valid_only: False
-    valid_every: 1
+    valid_every: 5
     model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_5_gate"
     save_as_new: False
     world_size: 2
