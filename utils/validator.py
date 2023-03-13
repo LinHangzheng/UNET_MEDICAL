@@ -27,7 +27,7 @@ from .metric import compute_acu, compute_auc, plot_roc, compute_dice
 from .image_plot import plot_pred
 from .loss import CombinedLoss
 from einops import rearrange
-from tqdm import tqdm
+#from tqdm import tqdm
 class Validator(object):
     """Geometric validation; sample 3D points for distance/occupancy metrics."""
 
@@ -56,7 +56,7 @@ class Validator(object):
         self.net.eval() 
         preds_total = []
         labels_total = []
-        for n_iter, data in enumerate(tqdm(self.val_data_loader)):
+        for n_iter, data in enumerate(self.val_data_loader):
             images = data[0].to(self.device)
             labels = data[1].to(self.device)
             with torch.no_grad():
@@ -77,7 +77,7 @@ class Validator(object):
             val_dict[f'AUC_{i+1}'] = val_dict['AUC'][i]
         val_dict['AUC'] = torch.mean(val_dict['AUC'])
         if self.valid_only:
-            print("enter valid only")
+            print(f"enter valid only: AUC={val_dict['AUC']}")
             plot_roc(preds,labels,self.num_class,os.path.join(self.plot_path,"ROC_figure.jpg"))
             with open(os.path.join(self.plot_path,'result.txt'),'w') as f:
                 for i in range(self.num_class):
