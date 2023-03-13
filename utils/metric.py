@@ -1,8 +1,28 @@
 import torch
 from torchmetrics.classification import MulticlassAUROC, MulticlassROC
 import matplotlib.pyplot as plt
-
-cmap = plt.get_cmap('plasma')
+import numpy as np
+RGB_PALLET = np.array(
+         [[215, 39, 79, 255],
+          [85, 167, 98, 255],
+          [229, 206, 56, 255],
+          [28, 142, 175, 255],
+          [214, 131, 81, 255],
+          [122, 52, 171, 255],
+          [119, 212, 212, 255],
+          [210, 67, 197, 255],
+          [201, 225, 76, 255],
+          [228, 186, 202, 255],
+          [0, 117, 117, 255],
+          [205, 191, 228, 255],
+          [155, 105, 48, 255],
+          [229, 223, 191, 255],
+          [108, 21, 21, 255],
+          [155, 225, 209, 255],
+          [122, 122, 21, 255],
+          [229, 193, 172, 255],
+          [26, 26, 122, 255],
+          [122, 122, 122, 255]])/255
 def compute_acu(pre, labels, num_classes, only_total=False):
     x = pre
     x = torch.argmax(x,dim=1)
@@ -64,7 +84,6 @@ def compute_dice(pred, label , num_classes, epsilon=1e-6):
 
 
 def plot_roc(pre, labels, num_classes, save_path, thresholds=None):
-    slicedCM = cmap(torch.linspace(0, 1, num_classes)) 
     y = labels.view(-1)
     metric = MulticlassROC(num_classes=num_classes, thresholds=thresholds)
     fpr, tpr, thresholds = metric(pre, y)
@@ -73,7 +92,7 @@ def plot_roc(pre, labels, num_classes, save_path, thresholds=None):
     plt.rcParams['savefig.dpi'] = 300
     print("start plotting")
     for i in range(num_classes):
-        plt.plot(fpr[i].cpu(),tpr[i].cpu(),color=slicedCM[i],label=f"ROC_{i+1}")
+        plt.plot(fpr[i].cpu(),tpr[i].cpu(),color=RGB_PALLET[i],label=f"ROC_{i+1}")
     plt.title('ROC')
     plt.xlabel("True Postive Rate")
     plt.ylabel("False Postive Rate")
