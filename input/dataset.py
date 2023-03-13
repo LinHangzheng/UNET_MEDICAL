@@ -150,6 +150,9 @@ class IRDatasetProcessor(VisionDataset):
                 n_rotations = n_rotations * 2
             h = torch.randint(high=image.shape[1]-self.image_shape[0]-1,size=(1,))
             w = torch.randint(high=image.shape[2]-self.image_shape[1]-1,size=(1,))
+            if not self.is_training:
+                h = 380
+                w = 380
             delta = torch.rand(1) * 0.2
             augment_transform_image = self.get_augment_transforms(
                 do_horizontal_flip=do_horizontal_flip,
