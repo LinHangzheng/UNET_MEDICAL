@@ -216,6 +216,8 @@ class Trainer(object):
                                 embed_dim=params_model['embed_dim'],
                                 window_size=params_model['window_size'],
                                 )
+        elif self.mode_type == 'AttUNet':
+            self.net = AttU_Net(in_ch=self.IR_channel_level, out_ch=self.num_classes)
         if self.pretrained:
             state_dict = torch.load(self.pretrained)
             if not self.pretrained_from_DDP:
