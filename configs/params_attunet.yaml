@@ -1,0 +1,80 @@
+# Copyright 2020 Cerebras Systems.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Params for FC MNIST model
+description: "FC-MNIST base model params"
+
+train_input:
+    shuffle: True
+    shuffle_buffer_size : 10000
+    augment_data: True
+    data_dir: '/raid/projects/hangzheng/data' # Place to store data
+    shuffle: True
+    shuffle_seed: 2
+    num_parallel_calls: 0   # 0 means AUTOTUNE
+    train_test_split: 0.79
+    num_classes: 11
+    # IR_threshould: 0.18
+    image_shape: [224,224] #128
+    dataset: "IR_dataset"
+    IR_channel_level: 5 # up to 19
+    noise_variance: 0
+    augment_data: True
+    batch_size: 64
+    num_workers: 64
+    drop_last: False
+    prefetch_factor: 4
+
+eval_input:
+    plot_path: "./out_attunet_5"
+    batch_size: 19
+    threshold: null
+
+model:
+    classes_num: 11
+    layer_norm_epsilon: 1.0e-05
+    initializer: "glorot_uniform"
+    bias_initializer: "zeros"
+    
+
+optimizer:
+    lr: 0.0001
+    loss_lambda: 0.1
+    optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
+    weight_decay_rate: 5e-5
+    epsilon: 1e-6
+    max_gradient_norm: 1.0
+    loss_scaling_factor: 'dynamic'
+
+
+runconfig:
+    logs: '/raid/projects/hangzheng/checkpoints/AttUNet/channel_5_new'
+    model_type: "AttUNet" #UNet GeneratorUNet
+    pretrained: False
+    pretrained_from_DDP: True
+    find_unused_parameters: False
+    epochs: 1000
+    save_summary_epoch: 1
+    save_checkpoints_epoch: 1
+    keep_checkpoint_max: 2
+    model_dir: 'model_dir'
+    multireplica: False
+    mode: 'train'
+    valid: True
+    valid_only: True
+    valid_every: 5
+    model_path: "/raid/projects/hangzheng/checkpoints/AttUNet/channel_5_new"
+    save_as_new: False
+    world_size: 1
+    duplicate_act_worker_data: True
