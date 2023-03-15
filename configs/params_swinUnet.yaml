@@ -31,13 +31,15 @@ train_input:
     IR_channel_level: 17 # up to 19
     noise_variance: 0
     augment_data: True
-    batch_size: 76
-    num_workers: 0
-    drop_last: True
-    prefetch_factor: 10
+    batch_size: 32
+    num_workers: 32
+    drop_last: False
+    prefetch_factor: 4
 
 eval_input:
     plot_path: "/raid/projects/hangzheng/result/SWINUNET/pred_images"
+    batch_size: 19
+    threshold: null
 
 model:
     embed_dim: 96
@@ -48,6 +50,7 @@ model:
     
 optimizer:
     lr: 0.0001
+    loss_lambda: 0.1
     optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 5e-5
     epsilon: 1e-6
@@ -66,9 +69,10 @@ optimizer:
 
 
 runconfig:
+    find_unused_parameters: False
     model_type: "SwinUNet"
-    logs: '/raid/projects/hangzheng/checkpoints/SwinUNet'
-    pretrained: '/raid/projects/hangzheng/checkpoints/SwinUNet/20230214-222111.pth'
+    logs: '/raid/projects/hangzheng/checkpoints/SwinUNet/channel_17'
+    pretrained: False
     pretrained_from_DDP: True
     epochs: 100000
     steps_per_epoch: 32
@@ -81,11 +85,11 @@ runconfig:
     cs_ip:
     multireplica: False
     mode: 'train'
-    eval_steps: 100
+    eval_steps: 1000
     valid: True
-    valid_only: True
-    valid_every: 20
-    model_path: "/raid/projects/hangzheng/checkpoints/SwinUNet"
+    valid_only: False
+    valid_every: 5
+    model_path: "/raid/projects/hangzheng/checkpoints/SwinUNet/channel_17"
     save_as_new: False
-    world_size: 1
+    world_size: 2
     duplicate_act_worker_data: True
