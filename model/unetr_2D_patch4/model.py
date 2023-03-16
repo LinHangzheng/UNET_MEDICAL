@@ -227,9 +227,9 @@ class UNETR_patch4(nn.Module):
 
         self.decoder3_upsampler = \
             nn.Sequential(
-                Conv2dBlock(128, 64),
-                Conv2dBlock(64, 64),
-                nn.ConvTranspose2d(64, 64, kernel_size=2, stride=2)
+                Conv2dBlock(256, 128),
+                Conv2dBlock(128, 128),
+                nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
             )
 
         self.decoder0_header = \
