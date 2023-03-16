@@ -240,7 +240,7 @@ class UNETR_patch4(nn.Module):
             )
         self.Att9 = Attention_block(F_g=256,F_l=256,F_int=128)
         self.Att6 = Attention_block(F_g=128,F_l=128,F_int=64)
-        self.Att3 = Attention_block(F_g=64,F_l=64,F_int=32)
+        self.Att3 = Attention_block(F_g=128,F_l=128,F_int=32)
         self.Att0 = Attention_block(F_g=64,F_l=64,F_int=32)
 
     def forward(self, x):
