@@ -26,7 +26,7 @@ train_input:
     num_classes: 11
     image_shape: [224,224] #128
     dataset: "IR_dataset"
-    IR_channel_level: 3 # up to 17
+    IR_channel_level: 5 # up to 17
     noise_variance: 0
     augment_data: True
     batch_size: 64
@@ -50,7 +50,7 @@ model:
 
 optimizer:
     lr: 0.0001
-    loss_lambda: 10
+    loss_lambda: 0.1
     optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 5e-5
     epsilon: 1e-6
@@ -59,8 +59,8 @@ optimizer:
 
 runconfig:
     model_type: "UNETR"
-    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_3_gate'
-    pretrained: '/raid/projects/hangzheng/checkpoints/UNETR/channel_3_gate/20230313-183858.pth'
+    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_5_gate'
+    pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: True
     epochs: 1000
@@ -73,9 +73,9 @@ runconfig:
     mode: 'train'
     eval_steps: 100
     valid: True
-    valid_only: True
+    valid_only: False
     valid_every: 5
-    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_3_gate"
+    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_5_gate"
     save_as_new: False
-    world_size: 1
+    world_size: 2
     duplicate_act_worker_data: True

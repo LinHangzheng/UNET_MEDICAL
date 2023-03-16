@@ -21,7 +21,7 @@ train_input:
     augment_data: True
     data_dir: '/raid/projects/hangzheng/data' # Place to store data
     shuffle: True
-    shuffle_seed: 2
+    shuffle_seed: 1
     num_parallel_calls: 0   # 0 means AUTOTUNE
     train_test_split: 0.79
     num_classes: 11
@@ -37,7 +37,7 @@ train_input:
     prefetch_factor: 4
 
 eval_input:
-    plot_path: "./out_attunet_5"
+    plot_path: "./out_attunet_3"
     batch_size: 19
     threshold: null
 
@@ -72,7 +72,7 @@ runconfig:
     multireplica: False
     mode: 'train'
     valid: True
-    valid_only: True
+    valid_only: False
     valid_every: 5
     model_path: "/raid/projects/hangzheng/checkpoints/AttUNet/channel_5_new"
     save_as_new: False
