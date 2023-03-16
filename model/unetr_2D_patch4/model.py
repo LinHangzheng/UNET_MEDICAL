@@ -77,7 +77,38 @@ class Embeddings(nn.Module):
         embeddings = self.dropout(embeddings)
         return embeddings
 
+class Attention_block(nn.Module):
+    '''
+    Attention_block from https://github.com/LeeJunHyun/Image_Segmentation/blob/master/network.py
+    '''
+    def __init__(self,F_g,F_l,F_int):
+        super(Attention_block,self).__init__()
+        self.W_g = nn.Sequential(
+            nn.Conv2d(F_g, F_int, kernel_size=1,stride=1,padding=0,bias=True),
+            nn.BatchNorm2d(F_int)
+            )
+        
+        self.W_x = nn.Sequential(
+            nn.Conv2d(F_l, F_int, kernel_size=1,stride=1,padding=0,bias=True),
+            nn.BatchNorm2d(F_int)
+        )
 
+        self.psi = nn.Sequential(
+            nn.Conv2d(F_int, 1, kernel_size=1,stride=1,padding=0,bias=True),
+            nn.BatchNorm2d(1),
+            nn.Sigmoid()
+        )
+        
+        self.relu = nn.ReLU(inplace=True)
+        
+    def forward(self,g,x):
+        g1 = self.W_g(g)
+        x1 = self.W_x(x)
+        psi = self.relu(g1+x1)
+        psi = self.psi(psi)
+
+        return x*psi
+    
 class TransformerBlock(nn.Module):
     def __init__(self, embed_dim, num_heads, dropout, image_size, patch_size, mlp_hidden):
         super().__init__()
@@ -161,7 +192,6 @@ class UNETR_patch4(nn.Module):
                 ext_layers,
                 mlp_hidden
             )
-
         # U-Net Decoder
         self.decoder0 = \
             nn.Sequential(
@@ -171,12 +201,30 @@ class UNETR_patch4(nn.Module):
 
         self.decoder3 = \
             nn.Sequential(
-                DeConv2dBlock(embed_dim, 128)
+                DeConv2dBlock(embed_dim, 128),
+            )
+
+        self.decoder6 = \
+            nn.Sequential(
+                DeConv2dBlock(embed_dim, 128),
+            )
+
+        self.decoder12_upsampler = \
+            nn.ConvTranspose2d(embed_dim, 512, kernel_size=2, stride=2)
+
+        self.decoder9_upsampler = \
+            nn.Sequential(
+                Conv2dBlock(512, 256),
+                Conv2dBlock(256, 256),
+                nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
             )
 
         self.decoder6_upsampler = \
-            nn.ConvTranspose2d(embed_dim, 128, kernel_size=2, stride=2)
-            
+            nn.Sequential(
+                Conv2dBlock(256, 128),
+                Conv2dBlock(128, 128),
+            )
+
         self.decoder3_upsampler = \
             nn.Sequential(
                 Conv2dBlock(256, 128),
@@ -190,16 +238,25 @@ class UNETR_patch4(nn.Module):
                 Conv2dBlock(64, 64),
                 nn.Conv2d(64, output_dim, kernel_size=1),
             )
+        self.Att9 = Attention_block(F_g=256,F_l=256,F_int=128)
+        self.Att6 = Attention_block(F_g=128,F_l=128,F_int=64)
+        self.Att3 = Attention_block(F_g=64,F_l=64,F_int=32)
+        self.Att0 = Attention_block(F_g=64,F_l=64,F_int=32)
 
     def forward(self, x):
+
         z = self.transformer(x)
-        z0, z3, z6 = x, *z
+        z0, z3, z6, z9, z12 = x, *z
         z3 = z3.transpose(-1, -2).view(-1, self.embed_dim, *self.patch_dim)
         z6 = z6.transpose(-1, -2).view(-1, self.embed_dim, *self.patch_dim)
+        z9 = z9.transpose(-1, -2).view(-1, self.embed_dim, *self.patch_dim)
+        z12 = z12.transpose(-1, -2).view(-1, self.embed_dim, *self.patch_dim)
 
-        z6 = self.decoder6_upsampler(z6)
+        z9 = self.decoder9_upsampler(torch.cat([self.Att9(z12,z9), z12], dim=1))
+        z6 = self.decoder6(z6)
+        z6 = self.decoder6_upsampler(torch.cat([self.Att6(z9,z6), z9], dim=1))
         z3 = self.decoder3(z3)
-        z3 = self.decoder3_upsampler(torch.cat([z3, z6], dim=1))
+        z3 = self.decoder3_upsampler(torch.cat([self.Att3(z6,z3), z6], dim=1))
         z0 = self.decoder0(z0)
-        output = self.decoder0_header(torch.cat([z0, z3], dim=1))
+        output = self.decoder0_header(torch.cat([self.Att0(z3,z0), z3], dim=1))
         return output
