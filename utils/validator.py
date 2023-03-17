@@ -41,6 +41,7 @@ class Validator(object):
         self.plot_entire_idx = params["eval_input"]["plot_entire_idx"]
         self.plot_roc = params["eval_input"]["plot_roc"]
         self.image_shape = params["train_input"]["image_shape"]
+        self.plot_entire_pace = params["eval_input"]["plot_entire_pace"]
         self.device = device
         self.net = net
         self.set_dataset()
@@ -83,7 +84,7 @@ class Validator(object):
             if self.plot_entire_idx is not None:
                 for i in range(self.plot_entire_idx):
                     IR, label = self.val_data_loader.dataset.get_entire_image(i)
-                    plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path)
+                    plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace)
             print(f"enter valid only: AUC={val_dict['AUC']}")
             if self.plot_roc:
                 plot_roc(preds,labels,self.num_class,os.path.join(self.plot_path,"ROC_figure.jpg"))

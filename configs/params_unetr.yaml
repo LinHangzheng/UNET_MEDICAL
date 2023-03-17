@@ -40,6 +40,7 @@ eval_input:
     batch_size: 1
     plot_entire_idx: 75
     plot_roc: False
+    plot_entire_pace: 112
 
 model:
     embed_dim: 512
