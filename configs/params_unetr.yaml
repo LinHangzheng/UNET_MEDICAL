@@ -26,7 +26,7 @@ train_input:
     num_classes: 11
     image_shape: [224,224] #128
     dataset: "IR_dataset"
-    IR_channel_level: 5 # up to 17
+    IR_channel_level: 17 # up to 17
     noise_variance: 0
     augment_data: True
     batch_size: 64
@@ -59,7 +59,7 @@ optimizer:
 
 runconfig:
     model_type: "UNETR"
-    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_5_gate'
+    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate'
     pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: True
@@ -75,7 +75,7 @@ runconfig:
     valid: True
     valid_only: False
     valid_every: 5
-    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_5_gate"
+    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate"
     save_as_new: False
     world_size: 2
     duplicate_act_worker_data: True
