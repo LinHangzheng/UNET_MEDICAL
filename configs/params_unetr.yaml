@@ -35,10 +35,10 @@ train_input:
     prefetch_factor: 4
 
 eval_input:
-    plot_path: "./out_unetr_3_gate"
+    plot_path: "./out_unetr_17_gate_entire"
     threshold: null
     batch_size: 1
-    plot_entire_idx: 10
+    plot_entire_idx: 75
     plot_roc: False
 
 model:
@@ -62,7 +62,7 @@ optimizer:
 runconfig:
     model_type: "UNETR"
     logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate'
-    pretrained: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate/20230311-011037.pth'
+    pretrained: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate/20230311-163654.pth'
     pretrained_from_DDP: True
     find_unused_parameters: True
     epochs: 1000

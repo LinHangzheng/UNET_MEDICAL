@@ -81,8 +81,9 @@ class Validator(object):
         val_dict['AUC'] = torch.mean(val_dict['AUC'])
         if self.valid_only:
             if self.plot_entire_idx is not None:
-                IR, label = self.val_data_loader.dataset.get_entire_image(self.plot_entire_idx)
-                plot_entire(IR, label, self.plot_entire_idx, self.image_shape[0], self.net, self.plot_path)
+                for i in range(self.plot_entire_idx):
+                    IR, label = self.val_data_loader.dataset.get_entire_image(i)
+                    plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path)
             print(f"enter valid only: AUC={val_dict['AUC']}")
             if self.plot_roc:
                 plot_roc(preds,labels,self.num_class,os.path.join(self.plot_path,"ROC_figure.jpg"))

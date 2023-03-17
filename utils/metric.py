@@ -2,6 +2,7 @@ import torch
 from torchmetrics.classification import MulticlassAUROC, MulticlassROC
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 RGB_PALLET = np.array([
     [35, 101, 173, 255],
     [48, 177, 85, 255],
