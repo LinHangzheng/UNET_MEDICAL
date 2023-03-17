@@ -31,7 +31,12 @@ class IRDataset(VisionDataset):
         self.IR = sorted(glob(os.path.join(self.root,split,'IR/*.npy')))
         self.label = sorted(glob(os.path.join(self.root,split,'label/*.npy')))
         self.channel_map = [15, 9, 5, 1, 13, 11, 2, 8, 0, 7, 3, 16, 14, 6, 4, 12, 10]
-        
+    
+    def get_entire_image(self, idx):
+        IR = torch.from_numpy(np.load(self.IR[idx])[self.channel_map[:self.IR_channel_level],:,:])
+        label = torch.from_numpy(np.load(self.label[idx]))
+        return IR, label
+    
     def __len__(self):
         if self.split == 'train':
             return len(self.IR)*10
