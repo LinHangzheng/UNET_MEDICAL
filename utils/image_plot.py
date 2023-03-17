@@ -59,7 +59,7 @@ def plot_entire(IR, label, idx, image_size, net, save_path, num_class=11):
     preds_RGB = torch.zeros([label.shape[0],label.shape[1],3],dtype=torch.uint8)
     preds_mask = torch.zeros([num_class, IR.shape[1],IR.shape[2]],dtype=torch.float32)
     IR = torch.unsqueeze(IR,0)
-    IR.type(torch.float32)
+    IR = IR.type(torch.float32)
     for i in range(num_class):
         labels_RGB[torch.where(label==i)] = RGB_PALLET[i]
     label = Image.fromarray(np.array(labels_RGB))
