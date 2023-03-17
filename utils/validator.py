@@ -27,6 +27,7 @@ from .metric import compute_acu, compute_auc, plot_roc, compute_dice
 from .image_plot import plot_pred, plot_entire
 from .loss import CombinedLoss
 from einops import rearrange
+import time
 #from tqdm import tqdm
 class Validator(object):
     """Geometric validation; sample 3D points for distance/occupancy metrics."""
@@ -84,7 +85,10 @@ class Validator(object):
             if self.plot_entire_idx is not None:
                 for i in range(self.plot_entire_idx):
                     IR, label = self.val_data_loader.dataset.get_entire_image(i)
+                    start = time.time()
                     plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace)
+                    end = time.time()
+                    print(end-start)
             print(f"enter valid only: AUC={val_dict['AUC']}")
             if self.plot_roc:
                 plot_roc(preds,labels,self.num_class,os.path.join(self.plot_path,"ROC_figure.jpg"))
