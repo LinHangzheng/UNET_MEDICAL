@@ -53,3 +53,32 @@ def plot_pred(n_start, num_class, images, labels, preds, save_path):
         pred.save(os.path.join(save_path,f"pred_{idx}.jpg"))
         
     return 
+
+def plot_entire(IR, label, idx, image_size, net, save_path, num_class=11):
+    labels_RGB = torch.zeros([label.shape[0],label.shape[1],3],dtype=torch.uint8)
+    preds_RGB = torch.zeros([label.shape[0],label.shape[1],3],dtype=torch.uint8)
+    preds_mask = torch.zeros([num_class, IR.shape[1],IR.shape[2]],dtype=torch.float32)
+    IR = torch.unsqueeze(IR,0)
+    for i in range(num_class):
+        labels_RGB[torch.where(label==i)] = RGB_PALLET[i]
+    label = Image.fromarray(np.array(labels_RGB))
+    label.save(os.path.join(save_path,f"label_entire_{idx}.jpg"))
+    for i in range(IR.shape[2]//(image_size//2)):
+        h = i*(image_size//2)
+        if h+image_size-1>IR.shape[2]:
+            h = IR.shape[2] - image_size
+        for j in range(IR.shape[3]//(image_size//2)):
+            w = j*(image_size//2)
+            if w+image_size-1>IR.shape[3]:
+                w = IR.shape[3] - image_size
+            with torch.no_grad():
+                pred = net(IR[:,:,h:h+image_size,w:w+image_size])
+            pred = torch.squeeze(pred,0)
+            preds_mask[:,h:h+image_size,w:w+image_size] += pred.cpu()
+    preds_mask = torch.argmax(preds_mask, dim=0)
+    for i in range(num_class):
+        preds_RGB[torch.where(preds_mask==i)] = RGB_PALLET[i]
+    IR = Image.fromarray(np.array(preds_RGB))
+    IR.save(os.path.join(save_path,f"preds_entire_{idx}.jpg"))
+
+    

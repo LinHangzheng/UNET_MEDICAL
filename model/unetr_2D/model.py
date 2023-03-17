@@ -224,6 +224,7 @@ class UNETR(nn.Module):
             nn.Sequential(
                 Conv2dBlock(1024, 512),
                 Conv2dBlock(512, 512),
+                Conv2dBlock(512, 512),
                 nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
             )
 
