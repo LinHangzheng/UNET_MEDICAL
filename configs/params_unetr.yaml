@@ -39,6 +39,7 @@ eval_input:
     threshold: null
     batch_size: 1
     plot_entire_idx: 10
+    plot_roc: False
 
 model:
     embed_dim: 512

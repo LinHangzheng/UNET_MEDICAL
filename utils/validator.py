@@ -39,6 +39,7 @@ class Validator(object):
         self.plot_path = params["eval_input"]["plot_path"]
         self.threshold = params["eval_input"]["threshold"]
         self.plot_entire_idx = params["eval_input"]["plot_entire_idx"]
+        self.plot_roc = params["eval_input"]["plot_roc"]
         self.image_shape = params["train_input"]["image_shape"]
         self.device = device
         self.net = net
@@ -83,7 +84,8 @@ class Validator(object):
                 IR, label = self.val_data_loader.dataset.get_entire_image(self.plot_entire_idx)
                 plot_entire(IR, label, self.plot_entire_idx, self.image_shape[0], self.net, self.plot_path)
             print(f"enter valid only: AUC={val_dict['AUC']}")
-            plot_roc(preds,labels,self.num_class,os.path.join(self.plot_path,"ROC_figure.jpg"))
+            if self.plot_roc:
+                plot_roc(preds,labels,self.num_class,os.path.join(self.plot_path,"ROC_figure.jpg"))
             with open(os.path.join(self.plot_path,'result.txt'),'w') as f:
                 for i in range(self.num_class):
                     auc = val_dict[f'AUC_{i+1}']
