@@ -62,7 +62,7 @@ optimizer:
 runconfig:
     model_type: "UNETR"
     logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate'
-    pretrained: False
+    pretrained: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate/20230311-011037.pth'
     pretrained_from_DDP: True
     find_unused_parameters: True
     epochs: 1000
@@ -75,7 +75,7 @@ runconfig:
     mode: 'train'
     eval_steps: 100
     valid: True
-    valid_only: False
+    valid_only: True
     valid_every: 5
     model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate"
     save_as_new: False
