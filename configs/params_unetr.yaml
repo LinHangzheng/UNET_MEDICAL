@@ -19,7 +19,7 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    data_dir: './data' # Place to store data
+    data_dir: '/raid/projects/hangzheng/data' # Place to store data
     shuffle: True
     shuffle_seed: 2
     num_parallel_calls: 0   # 0 means AUTOTUNE
@@ -60,7 +60,7 @@ optimizer:
 
 runconfig:
     model_type: "UNETR"
-    logs: './checkpoints/UNETR/channel_17_gate'
+    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate'
     pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: True
@@ -76,7 +76,7 @@ runconfig:
     valid: True
     valid_only: True
     valid_every: 5
-    model_path: "./checkpoints/UNETR/channel_17_gate"
+    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate"
     save_as_new: False
     world_size: 1
     duplicate_act_worker_data: True
