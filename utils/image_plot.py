@@ -64,13 +64,13 @@ def plot_entire(IR, label, idx, image_size, net, save_path, plot_entire_pace, nu
         labels_RGB[torch.where(label==i)] = RGB_PALLET[i]
     label = Image.fromarray(np.array(labels_RGB))
     label.save(os.path.join(save_path,f"label_entire_{idx}.jpg"))
-    for i in range(IR.shape[2]//plot_entire_pace):
+    for i in range(IR.shape[2]//plot_entire_pace+1):
         h = i*plot_entire_pace
-        if h+image_size-1>IR.shape[2]:
+        if h+image_size>IR.shape[2]:
             h = IR.shape[2] - image_size
-        for j in range(IR.shape[3]//plot_entire_pace):
+        for j in range(IR.shape[3]//plot_entire_pace+1):
             w = j*plot_entire_pace
-            if w+image_size-1>IR.shape[3]:
+            if w+image_size>IR.shape[3]:
                 w = IR.shape[3] - image_size
             with torch.no_grad():
                 pred = net(IR[:,:,h:h+image_size,w:w+image_size])
