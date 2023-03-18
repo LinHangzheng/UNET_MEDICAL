@@ -207,6 +207,17 @@ class Trainer(object):
                                 mlp_hidden=params_model['mlp_hidden'],
                                 num_layers=params_model['num_layers'],
                                 ext_layers=params_model['ext_layers'])
+            elif self.params['model']['patch_size'] == 32:
+                self.net = UNETR_patch32(img_shape=self.image_shape, 
+                                input_dim=self.IR_channel_level, 
+                                output_dim=self.num_classes, 
+                                embed_dim=params_model['embed_dim'], 
+                                patch_size=params_model['patch_size'], 
+                                num_heads=params_model['num_heads'], 
+                                dropout=params_model['dropout'],
+                                mlp_hidden=params_model['mlp_hidden'],
+                                num_layers=params_model['num_layers'],
+                                ext_layers=params_model['ext_layers'])
         elif self.model_type == 'SwinUNet':
             params_model = self.params['model']
             self.net = SwinUnet(img_size=self.image_shape[0],

@@ -5,4 +5,5 @@ from .segmenter.factory import create_segmenter
 from .unetr_2D.model import UNETR
 from .Swin_Unet.model import SwinUnet
 from .unetr_2D_patch4.model import UNETR_patch4
+from .unetr_2D_patch32.model import UNETR_patch32
 from .att_unet.model import AttU_Net
