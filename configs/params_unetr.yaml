@@ -35,12 +35,12 @@ train_input:
     prefetch_factor: 4
 
 eval_input:
-    plot_path: "./out_unetr_17_gate_entire"
+    plot_path: "./out_unetr_17_gate_entire_56"
     threshold: null
     batch_size: 1
     plot_entire_idx: 75
     plot_roc: False
-    plot_entire_pace: 112
+    plot_entire_pace: 56
 
 model:
     embed_dim: 512
