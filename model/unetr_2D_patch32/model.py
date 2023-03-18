@@ -162,7 +162,7 @@ class Transformer(nn.Module):
         return extract_layers
 
 
-class UNETR(nn.Module):
+class UNETR_patch32(nn.Module):
     def __init__(self, img_shape=(128, 128), 
                  input_dim=19, 
                  output_dim=11, 
