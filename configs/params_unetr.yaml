@@ -38,7 +38,7 @@ eval_input:
     plot_path: "./out_unetr_17_gate_entire_56"
     threshold: null
     batch_size: 1
-    plot_entire_idx: 75
+    plot_entire_idx: null
     plot_roc: False
     plot_entire_pace: 56
 
@@ -63,7 +63,7 @@ optimizer:
 runconfig:
     model_type: "UNETR"
     logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate'
-    pretrained: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate/20230311-163654.pth'
+    pretrained: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate/20230317-012717.pth'
     pretrained_from_DDP: True
     find_unused_parameters: True
     epochs: 1000
@@ -74,11 +74,11 @@ runconfig:
     cs_ip:
     multireplica: False
     mode: 'train'
-    eval_steps: 100
+    eval_steps: False
     valid: True
-    valid_only: True
-    valid_every: 5
+    valid_only: False
+    valid_every: 1
     model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate"
     save_as_new: False
-    world_size: 1
+    world_size: 2
     duplicate_act_worker_data: True
