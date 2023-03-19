@@ -19,7 +19,8 @@ RGB_PALLET = np.array([
 
 def compute_acu(pre, labels, num_classes, only_total=False):
     x = pre
-    x = torch.argmax(x,dim=1)
+    if x.shape == 4:
+        x = torch.argmax(x,dim=1)
     y = labels.view(-1)
     total = x.shape[0]
     

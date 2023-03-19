@@ -79,17 +79,24 @@ class Validator(object):
         val_dict['ACU'] = compute_acu(preds,labels,self.num_class,True)
         val_dict['AUC'] = torch.stack(val_dict['AUC'])
         val_dict['AUC'] = torch.sum(val_dict['AUC'],axis=0)
+        
+        
         for i in range(self.num_class):
             val_dict[f'AUC_{i+1}'] = val_dict['AUC'][i]
         val_dict['AUC'] = torch.mean(val_dict['AUC'])
+        acu = []
+        time_list = []
         if self.valid_only:
             if self.plot_entire_idx is not None:
                 for i in range(self.plot_entire_idx):
                     IR, label = self.val_data_loader.dataset.get_entire_image(i)
                     start = time.time()
-                    plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace)
+                    preds_IR = plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace)
                     end = time.time()
-                    print(end-start)
+                    time_list.append(end-start)
+                    acu.append(compute_acu(preds_IR, label,self.num_class,True))
+                print(f"entire acu: {torch.mean(acu)}")
+                print(f"entire time: {torch.mean(time_list)}")
             print(f"enter valid only: AUC={val_dict['AUC']}")
             if self.plot_roc:
                 plot_roc(preds,labels,self.num_class,os.path.join(self.plot_path,"ROC_figure.jpg"))
