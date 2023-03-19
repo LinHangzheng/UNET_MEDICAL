@@ -2,7 +2,6 @@ from PIL import Image
 import torch
 import os
 import numpy as np
-
 COLOR_PALLET = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', 
                 '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', 
                 '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', 
@@ -81,5 +80,6 @@ def plot_entire(IR, label, idx, image_size, net, save_path, plot_entire_pace, nu
         preds_RGB[torch.where(preds_mask==i)] = RGB_PALLET[i]
     IR = Image.fromarray(np.array(preds_RGB))
     IR.save(os.path.join(save_path,f"preds_entire_{idx}.jpg"))
+    return preds_mask
 
     
