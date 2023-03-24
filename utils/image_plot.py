@@ -80,6 +80,6 @@ def plot_entire(IR, label, idx, image_size, net, save_path, plot_entire_pace, nu
         preds_RGB[torch.where(preds_mask==i)] = RGB_PALLET[i]
     IR = Image.fromarray(np.array(preds_RGB))
     IR.save(os.path.join(save_path,f"preds_entire_{idx}.jpg"))
-    return preds_mask
+    return  
 
     
