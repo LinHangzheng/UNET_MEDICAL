@@ -54,6 +54,7 @@ class IRDataset(VisionDataset):
         
 class IRDatasetProcessor(VisionDataset):
     def __init__(self, params):
+        super().__init__(params)
         self.params = params
         self.data_dir = params["train_input"]["data_dir"]
 
@@ -79,11 +80,18 @@ class IRDatasetProcessor(VisionDataset):
         self.world_size = params["runconfig"]["world_size"]
         
         self.mp_type = torch.float32
+        
+        self._DataLoader__initialized = True
+        self.iterator = super().__iter__()
         # default is that each activation worker sends `num_workers`
         # batches so total batch_size * num_act_workers * num_pytorch_workers samples
 
         # Using Faster Dataloader for mapstyle dataset.
 
+    def __iter__(self):
+        for i in range(len(self)):
+            yield next(self.iterator)
+            
     def create_dataset(self, is_training):
         split = "train" if is_training else "val"
         dataset = IRDataset(
