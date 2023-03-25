@@ -155,9 +155,6 @@ class IRDatasetProcessor(VisionDataset):
                 n_rotations = n_rotations * 2
             h = torch.randint(high=image.shape[1]-self.image_shape[0]-1,size=(1,))
             w = torch.randint(high=image.shape[2]-self.image_shape[1]-1,size=(1,))
-            if not self.is_training:
-                h = 380
-                w = 380
             delta = torch.rand(1) * 0.2
             augment_transform_image = self.get_augment_transforms(
                 do_horizontal_flip=do_horizontal_flip,
@@ -195,13 +192,13 @@ class IRDatasetProcessor(VisionDataset):
         self, do_horizontal_flip, n_rotations, do_random_brightness, delta, crop_h, crop_w, image_height, image_width
     ):
         augment_transforms_list = []
-        if image_height is not None:
-            crop_transform = transforms.Lambda(
-                lambda x: transforms.functional.crop(x, top=crop_h, left=crop_w, height=image_height, width=image_width)
-            )
-            augment_transforms_list.append(crop_transform)
-        
         if self.is_training:
+            if image_height is not None:
+                crop_transform = transforms.Lambda(
+                    lambda x: transforms.functional.crop(x, top=crop_h, left=crop_w, height=image_height, width=image_width)
+                )
+                augment_transforms_list.append(crop_transform)
+            
             if do_horizontal_flip:
                 horizontal_flip_transform = transforms.Lambda(
                     lambda x: transforms.functional.hflip(x)
