@@ -1,5 +1,4 @@
 import os
-import h5py
 import re
 import scipy.io
 import shutil
@@ -121,13 +120,13 @@ def prepare_data(large_IR_files,
     save_data(patches_test, test_folder, max_IR, plot, False)
 
 if __name__ == "__main__":
-    root = '/home/hangzheng/tissue_segmentation/data'
+    root = '/raid/projects/hangzheng/data'
     train_folder = os.path.join(root, 'train')
     test_large_folder = os.path.join(root, 'val_large')
     test_folder = os.path.join(root, 'val')
     
     plot = True
-    IR_files = sorted(glob("/home/hangzheng/tissue_segmentation/data/BR1003_Cores/Data/*"))
+    IR_files = sorted(glob('/raid/projects/hangzheng/BR1003_Cores/Data/*'))
     
     train_test_split = 0.8
     create_folder(train_folder)

@@ -23,7 +23,7 @@ train_input:
     shuffle: True
     shuffle_seed: 2
     num_parallel_calls: 0   # 0 means AUTOTUNE
-    num_classes: 11
+    num_classes: 7
     image_shape: [224,224] #128
     dataset: "IR_dataset"
     IR_channel_level: 9 # up to 17
@@ -35,7 +35,7 @@ train_input:
     prefetch_factor: 4
 
 eval_input:
-    plot_path: "./out_unetr_17_gate_entire_28"
+    plot_path: "./"
     threshold: null
     batch_size: 1
     plot_entire_idx: 76
@@ -62,11 +62,11 @@ optimizer:
 
 runconfig:
     model_type: "UNETR"
-    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate'
-    pretrained: '/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate/20230311-011037.pth'
+    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_9'
+    pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: True
-    epochs: 1000
+    epochs: 100
     save_summary_epoch: 1
     save_checkpoints_epoch: 1
     keep_checkpoint_max: 2
@@ -76,9 +76,9 @@ runconfig:
     mode: 'train'
     eval_steps: False
     valid: True
-    valid_only: True
+    valid_only: False
     valid_every: 1
-    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_17_gate"
+    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_9"
     save_as_new: False
     world_size: 2
     duplicate_act_worker_data: True
