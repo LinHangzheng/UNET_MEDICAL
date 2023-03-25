@@ -66,8 +66,8 @@ runconfig:
     pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: True
-    epochs: 2000
-    steps_per_epoch: 20
+    epochs: 1000
+    steps_per_epoch: 50
     save_summary_epoch: 1
     save_checkpoints_epoch: 1
     keep_checkpoint_max: 2

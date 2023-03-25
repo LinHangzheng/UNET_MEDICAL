@@ -24,11 +24,11 @@ train_input:
     shuffle_seed: 2
     num_parallel_calls: 0   # 0 means AUTOTUNE
     train_test_split: 0.79
-    num_classes: 11
+    num_classes: 7
     # IR_threshould: 0.18
     image_shape: [224,224] #128
     dataset: "IR_dataset"
-    IR_channel_level: 17 # up to 19
+    IR_channel_level: 9 # up to 19
     noise_variance: 0
     augment_data: True
     batch_size: 64
@@ -62,12 +62,13 @@ optimizer:
 
 
 runconfig:
-    logs: '/raid/projects/hangzheng/checkpoints/UNet/channel_3_new'
+    logs: '/raid/projects/hangzheng/checkpoints/UNet/channel_9'
     model_type: "UNet" #UNet GeneratorUNet
-    pretrained: '/raid/projects/hangzheng/checkpoints/UNet/channel_17_new/20230312-143217.pth'
+    pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: False
-    epochs: 524
+    epochs: 1000
+    steps_per_epoch: 50
     save_summary_epoch: 1
     save_checkpoints_epoch: 1
     keep_checkpoint_max: 2
@@ -76,8 +77,8 @@ runconfig:
     mode: 'train'
     valid: True
     valid_only: True
-    valid_every: 5
-    model_path: "/raid/projects/hangzheng/checkpoints/UNet/channel_5_new"
+    valid_every: 1
+    model_path: "/raid/projects/hangzheng/checkpoints/UNet/channel_9"
     save_as_new: False
     world_size: 1
     duplicate_act_worker_data: True
