@@ -75,6 +75,7 @@ class Trainer(object):
         self.valid = params["runconfig"]["valid"]
         self.valid_only = params["runconfig"]["valid_only"]
         self.epochs = params["runconfig"]["epochs"]
+        self.steps_per_epoch = params["runconfig"]["steps_per_epoch"]
         self.save_checkpoints_epoch = params["runconfig"]["save_checkpoints_epoch"]
         self.model_path = params["runconfig"]["model_path"]
         self.valid_every = params["runconfig"]["valid_every"]
@@ -317,8 +318,8 @@ class Trainer(object):
         # if we are using DistributedSampler, we have to tell it which epoch this is
         if self.world_size > 1:
             self.train_data_loader.sampler.set_epoch(epoch)
-        for n_iter, data in enumerate(self.train_data_loader):
-            
+        for _ in range(self.steps_per_epoch):
+            data = iter(self.train_data_loader)
             """
             Override this function to change the per-iteration behaviour.
             """

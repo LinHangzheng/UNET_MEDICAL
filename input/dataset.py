@@ -39,7 +39,7 @@ class IRDataset(VisionDataset):
     
     def __len__(self):
         if self.split == 'train':
-            return len(self.IR)*10
+            return 1000000000000000
         else:
             return len(self.IR)
         #return len(self.IR)
@@ -81,16 +81,11 @@ class IRDatasetProcessor(VisionDataset):
         
         self.mp_type = torch.float32
         
-        self._DataLoader__initialized = True
-        self.iterator = super().__iter__()
         # default is that each activation worker sends `num_workers`
         # batches so total batch_size * num_act_workers * num_pytorch_workers samples
 
         # Using Faster Dataloader for mapstyle dataset.
 
-    def __iter__(self):
-        for i in range(len(self)):
-            yield next(self.iterator)
             
     def create_dataset(self, is_training):
         split = "train" if is_training else "val"
