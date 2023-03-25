@@ -39,8 +39,8 @@ class IRDataset(VisionDataset):
     
     def __len__(self):
         if self.split == 'train':
-            return 1000000000000000
-        else:
+            return 4000000
+        else:       
             return len(self.IR)
         #return len(self.IR)
 
