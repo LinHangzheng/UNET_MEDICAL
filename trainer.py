@@ -166,6 +166,7 @@ class Trainer(object):
         self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.train_data_loader = self.DatasetProcessor.create_dataloader(
                                     is_training=True,rank=self.rank)
+        self.data_iterator = iter(self.train_data_loader)
         self.timer.check('create_dataloader')
         log.info(f"Loaded dataset with size: {len(self.train_data_loader.dataset)}")
             
@@ -319,7 +320,7 @@ class Trainer(object):
         if self.world_size > 1:
             self.train_data_loader.sampler.set_epoch(epoch)
         for _ in range(self.steps_per_epoch):
-            data = iter(self.train_data_loader)
+            data = next(self.data_iterator)
             """
             Override this function to change the per-iteration behaviour.
             """
