@@ -92,7 +92,7 @@ class Validator(object):
                 for i in range(self.plot_entire_idx):
                     IR, label = self.val_data_loader.dataset.get_entire_image(i)
                     start = time.time()
-                    preds_IR = plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace)
+                    preds_IR = plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace,num_class=self.num_class)
                     end = time.time()
                     time_list.append(end-start)
                     preds_IR = rearrange(preds_IR, 'h w -> (h w)')
