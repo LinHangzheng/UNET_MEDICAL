@@ -76,7 +76,7 @@ runconfig:
     multireplica: False
     mode: 'train'
     valid: True
-    valid_only: True
+    valid_only: False
     valid_every: 1
     model_path: "/raid/projects/hangzheng/checkpoints/UNet/channel_9"
     save_as_new: False
