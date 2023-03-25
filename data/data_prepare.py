@@ -81,11 +81,10 @@ def prepare_data(large_IR_files,
     save_data(patches_test, test_folder, max_IR, plot)
 
 if __name__ == "__main__":
-    data_dir = '.'
-    train_folder = 'train'
-    test_folder = 'val'
+    train_folder = '/raid/projects/hangzheng/data/train'
+    test_folder = '/raid/projects/hangzheng/data/val'
     plot = True
-    IR_files = sorted(glob("/home/hangzheng/tissue_segmentation/data/BR1003_Cores/Data/*"))
+    IR_files = sorted(glob("/raid/projects/hangzheng/BR1003_Cores/Data/*"))
     
     train_test_split = 0.8
     create_folder(train_folder)

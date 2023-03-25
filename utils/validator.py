@@ -28,6 +28,7 @@ from .image_plot import plot_pred, plot_entire
 from .loss import CombinedLoss
 from einops import rearrange
 import time
+import numpy as np
 #from tqdm import tqdm
 class Validator(object):
     """Geometric validation; sample 3D points for distance/occupancy metrics."""
@@ -94,9 +95,11 @@ class Validator(object):
                     preds_IR = plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace)
                     end = time.time()
                     time_list.append(end-start)
+                    preds_IR = rearrange(preds_IR, 'h w -> (h w)')
+                    
                     acu.append(compute_acu(preds_IR, label,self.num_class,True))
-                print(f"entire acu: {torch.mean(acu)}")
-                print(f"entire time: {torch.mean(time_list)}")
+                print(f"entire acu: {np.mean(acu)}")
+                print(f"entire time: {np.mean(time_list)}")
             print(f"enter valid only: AUC={val_dict['AUC']}")
             if self.plot_roc:
                 plot_roc(preds,labels,self.num_class,os.path.join(self.plot_path,"ROC_figure.jpg"))
