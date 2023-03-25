@@ -129,7 +129,7 @@ class Trainer(object):
                                 world_size=self.world_size)
         
     def set_timer(self):
-        self.timer = PerfTimer(self.rank, activate=False)
+        self.timer = PerfTimer(self.rank, activate=True)
         self.timer.reset()
         
     def set_wandb(self):
