@@ -145,7 +145,7 @@ class IRDatasetProcessor(VisionDataset):
 
     def transform_image_and_mask(self, image, mask):
         # image: [C, H, W]
-        if self.augment_data:
+        if self.augment_data and self.is_training:
             do_horizontal_flip = torch.rand(size=(1,)).item() > 0.5
             # n_rots in range [0, 3)
             n_rotations = torch.randint(low=0, high=3, size=(1,)).item()
@@ -177,8 +177,8 @@ class IRDatasetProcessor(VisionDataset):
                 image_width=self.image_shape[1]
             )
 
-        image = augment_transform_image(image)
-        mask = augment_transform_mask(mask)
+            image = augment_transform_image(image)
+            mask = augment_transform_mask(mask)
 
         # Handle dtypes and mask shapes based on `loss_type`
         # and `mixed_precsion`
