@@ -28,7 +28,7 @@ train_input:
     # IR_threshould: 0.18
     image_shape: [224,224] #128
     dataset: "IR_dataset"
-    IR_channel_level: 3 # up to 19
+    IR_channel_level: 9 # up to 19
     noise_variance: 0
     augment_data: True
     batch_size: 64
@@ -37,11 +37,11 @@ train_input:
     prefetch_factor: 4
 
 eval_input:
-    plot_path: "./out_unet_17_new_entire"
-    batch_size: 64
+    plot_path: "./out_unet_9_entire"
+    batch_size: 10
     threshold: null
     plot_roc: False
-    plot_entire_idx: 76
+    plot_entire_idx: 20
     plot_entire_pace: 224 
     true_label: True
 
@@ -65,7 +65,7 @@ optimizer:
 runconfig:
     logs: '/raid/projects/hangzheng/checkpoints/UNet/channel_3'
     model_type: "UNet" #UNet GeneratorUNet
-    pretrained: False
+    pretrained: '/raid/projects/hangzheng/checkpoints/UNet/channel_9/20230324-223904.pth'
     pretrained_from_DDP: True
     find_unused_parameters: False
     epochs: 1000
@@ -77,7 +77,7 @@ runconfig:
     multireplica: False
     mode: 'train'
     valid: True
-    valid_only: False
+    valid_only: True
     valid_every: 1
     model_path: "/raid/projects/hangzheng/checkpoints/UNet/channel_3"
     save_as_new: False
