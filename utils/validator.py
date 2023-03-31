@@ -63,6 +63,9 @@ class Validator(object):
         self.net.eval() 
         preds_total = []
         labels_total = []
+        if os.path.exists(self.plot_path):
+            shutil.rmtree(self.plot_path)
+        os.mkdir(self.plot_path)
         for n_iter, data in enumerate(self.val_data_loader):
             images = data[0].to(self.device)
             labels = data[1].to(self.device)
@@ -91,9 +94,7 @@ class Validator(object):
             if self.plot_entire_idx is not None:
                 TP = 0
                 total = 0
-                if os.path.exists(self.plot_path):
-                    shutil.rmtree(self.plot_path)
-                os.mkdir(self.plot_path)
+                
                 for i in range(self.plot_entire_idx):
                     IR, label = self.val_data_loader.dataset.get_entire_image(i,self.true_label)
                     start = time.time()
