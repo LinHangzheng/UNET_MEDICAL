@@ -232,14 +232,12 @@ class UNETR(nn.Module):
             nn.Sequential(
                 Conv2dBlock(512, 256),
                 Conv2dBlock(256, 256),
-                Conv2dBlock(256, 256),
                 nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
             )
 
         self.decoder3_upsampler = \
             nn.Sequential(
                 Conv2dBlock(256, 128),
-                Conv2dBlock(128, 128),
                 Conv2dBlock(128, 128),
                 nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
             )
