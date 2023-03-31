@@ -140,7 +140,7 @@ if __name__ == "__main__":
     plot = True
     IR_files = sorted(glob('/raid/projects/hangzheng/BR1003_Cores/Data/*'))
     
-    train_test_split = 0.8
+    train_test_split = 0.9
     create_folder(train_folder)
     create_folder(test_large_folder)
     create_folder(test_folder)
