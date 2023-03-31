@@ -39,7 +39,7 @@ class IRDataset(VisionDataset):
     
     def __len__(self):
         if self.split == 'train':
-            return 4000000
+            return 12000000
         else:       
             return len(self.IR)
         #return len(self.IR)
@@ -158,7 +158,7 @@ class IRDatasetProcessor(VisionDataset):
                 n_rotations = n_rotations * 2
             h = torch.randint(high=image.shape[1]-self.image_shape[0]-1,size=(1,))
             w = torch.randint(high=image.shape[2]-self.image_shape[1]-1,size=(1,))
-            delta = torch.rand(1) * 0.2
+            delta = torch.rand(1) * 0.05
             augment_transform_image = self.get_augment_transforms(
                 do_horizontal_flip=do_horizontal_flip,
                 n_rotations=n_rotations,

@@ -21,7 +21,7 @@ train_input:
     augment_data: True
     data_dir: '/raid/projects/hangzheng/data' # Place to store data
     shuffle: True
-    shuffle_seed: 2
+    shuffle_seed: 1
     num_parallel_calls: 0   # 0 means AUTOTUNE
     num_classes: 7
     image_shape: [224,224] #128
@@ -29,7 +29,7 @@ train_input:
     IR_channel_level: 9 # up to 17
     noise_variance: 0
     augment_data: True
-    batch_size: 64
+    batch_size: 32
     num_workers: 64
     drop_last: False
     prefetch_factor: 4
@@ -37,8 +37,8 @@ train_input:
 eval_input:
     plot_path: "./"
     threshold: null
-    batch_size: 1
-    plot_entire_idx: 76
+    batch_size: 64
+    plot_entire_idx: 320
     plot_roc: False
     plot_entire_pace: 168
 
@@ -47,15 +47,15 @@ model:
     patch_size: 16
     num_heads: 16
     dropout: 0.1
-    mlp_hidden: 512
-    num_layers: 12
-    ext_layers: [3,6,9,12] #[3, 6, 9, 12]
+    mlp_hidden: 2048
+    num_layers: 20
+    ext_layers: [5,10,15,20] #[3, 6, 9, 12]
 
 optimizer:
     lr: 0.0001
-    loss_lambda: 0.1
+    loss_lambda: 2
     optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
-    weight_decay_rate: 5e-5
+    weight_decay_rate: 1e-4
     epsilon: 1e-6
     max_gradient_norm: 1.0
 
@@ -67,7 +67,7 @@ runconfig:
     pretrained_from_DDP: True
     find_unused_parameters: True
     epochs: 1000
-    steps_per_epoch: 50
+    steps_per_epoch: 100
     save_summary_epoch: 1
     save_checkpoints_epoch: 1
     keep_checkpoint_max: 2
