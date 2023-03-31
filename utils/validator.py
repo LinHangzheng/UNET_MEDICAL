@@ -21,7 +21,7 @@
 
 import torch 
 import os
-
+import shutil
 from input import IRDatasetProcessor
 from .metric import compute_acu, compute_auc, plot_roc, compute_dice
 from .image_plot import plot_pred, plot_entire
@@ -91,6 +91,9 @@ class Validator(object):
             if self.plot_entire_idx is not None:
                 TP = 0
                 total = 0
+                if os.path.exists(self.plot_path):
+                    shutil.rmtree(self.plot_path)
+                os.mkdir(self.plot_path)
                 for i in range(self.plot_entire_idx):
                     IR, label = self.val_data_loader.dataset.get_entire_image(i,self.true_label)
                     start = time.time()

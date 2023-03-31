@@ -1,5 +1,4 @@
 from PIL import Image
-import shutil
 import torch
 import os
 import numpy as np
@@ -55,9 +54,6 @@ def plot_pred(n_start, num_class, images, labels, preds, save_path):
     return 
 
 def plot_entire(IR, label, idx, image_size, net, save_path, plot_entire_pace, num_class=11):
-    if os.path.exists(save_path):
-        shutil.rmtree(save_path)
-    os.mkdir(save_path)
     # creat arrays for color plot
     labels_RGB = torch.zeros([label.shape[0],label.shape[1],3],dtype=torch.uint8)
     preds_RGB = torch.zeros([label.shape[0],label.shape[1],3],dtype=torch.uint8)
