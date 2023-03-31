@@ -29,7 +29,7 @@ def normolize(IR, max_val):
 
 
 
-def save_val_patches(IR, label, img_size, folder, idx, name, plot):
+def save_val_patches(IR, label, true_label, img_size, folder, idx, name, plot):
     h_start = (IR.shape[1]-img_size*4)//2
     w_start = (IR.shape[2]-img_size*4)//2
     h_idx  = 0
@@ -40,10 +40,11 @@ def save_val_patches(IR, label, img_size, folder, idx, name, plot):
             w = w_start + w_idx*img_size
             IR_patch = IR[:,h:h+img_size,w:w+img_size]
             label_patch = label[h:h+img_size,w:w+img_size]
-            
+            true_label_patch = true_label[h:h+img_size,w:w+img_size]
             data_save_plot(re.sub('val_large','val',folder),
                     IR_patch, 
                     label_patch, 
+                    true_label_patch,
                     f'IR_{idx}_{name}_{h_idx}_{w_idx}',
                     f'label_{idx}_{name}_{h_idx}_{w_idx}',
                     plot)
@@ -57,27 +58,32 @@ def save_data(IR_files, folder, max_IR, plot=True, train=True):
         data = scipy.io.loadmat(IR_file)
         IR = data['IRsub']
         label = data['6S_weakLabel']
+        true_label = data['6S_trueLabel']
         IR = np.moveaxis(IR,2,0)
         IR = normolize(IR, max_IR)
         data_save_plot(folder,
                        IR, 
                        label, 
+                       true_label,
                        f'IR_{i}_{name}',
                        f'label_{i}_{name}',
                        plot)
         
         if not train:
-            save_val_patches(IR, label, 224, folder, i, name, plot)
+            save_val_patches(IR, label, true_label, 224, folder, i, name, plot)
                
 def data_save_plot(save_folder,
                    IR_patch, 
                    Label_patch, 
+                   true_label,
                    IR_save_name, 
                    Label_save_name, 
                    plot=True):
     # save data into npy files
     np.save(os.path.join(save_folder, 'IR', IR_save_name),np.array(IR_patch).astype(np.float32))
     np.save(os.path.join(save_folder, 'label', Label_save_name),np.array(Label_patch))
+    np.save(os.path.join(save_folder, 'true_label', Label_save_name),np.array(true_label))
+    
     
     # plot data
     if not plot:
@@ -85,12 +91,16 @@ def data_save_plot(save_folder,
     
     IR_patch = (IR_patch[0,:,:]/np.max(IR_patch[0,:,:])*255).astype(np.uint8)
     labels_RGB = np.zeros([Label_patch.shape[0],Label_patch.shape[1],3]).astype(np.uint8)
+    true_labels_RGB = np.zeros([true_label.shape[0],true_label.shape[1],3]).astype(np.uint8)
     for k in range(7):
         labels_RGB[np.where(Label_patch==k)] = RGB_PALLET[k]
+        true_labels_RGB[np.where(true_label==k)] = RGB_PALLET[k]
     img = im.fromarray(IR_patch)
     img.save(os.path.join(save_folder, 'IR', f'{IR_save_name}.jpeg'))
     img = im.fromarray(labels_RGB)
     img.save(os.path.join(save_folder, 'label', f'{Label_save_name}.jpeg'))
+    img = im.fromarray(true_labels_RGB)
+    img.save(os.path.join(save_folder, 'true_label', f'true_{Label_save_name}.jpeg'))
        
         
 def create_folder(path):
@@ -99,6 +109,7 @@ def create_folder(path):
     os.mkdir(path)
     os.mkdir(os.path.join(path,'IR'))
     os.mkdir(os.path.join(path,'label'))
+    os.mkdir(os.path.join(path,'true_label'))
 
 
 def prepare_data(large_IR_files,
@@ -120,13 +131,13 @@ def prepare_data(large_IR_files,
     save_data(patches_test, test_folder, max_IR, plot, False)
 
 if __name__ == "__main__":
-    root = '/raid/projects/hangzheng/data'
+    root = '.'
     train_folder = os.path.join(root, 'train')
     test_large_folder = os.path.join(root, 'val_large')
     test_folder = os.path.join(root, 'val')
     
     plot = True
-    IR_files = sorted(glob('/raid/projects/hangzheng/BR1003_Cores/Data/*'))
+    IR_files = sorted(glob('BR1003_Cores/Data/*'))
     
     train_test_split = 0.8
     create_folder(train_folder)

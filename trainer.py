@@ -76,6 +76,7 @@ class Trainer(object):
         self.valid_only = params["runconfig"]["valid_only"]
         self.epochs = params["runconfig"]["epochs"]
         self.steps_per_epoch = params["runconfig"]["steps_per_epoch"]
+        self.save_best = params["runconfig"]["save_best"]
         self.save_checkpoints_epoch = params["runconfig"]["save_checkpoints_epoch"]
         self.model_path = params["runconfig"]["model_path"]
         self.valid_every = params["runconfig"]["valid_every"]
@@ -423,6 +424,8 @@ class Trainer(object):
         
         log.info(f'Saving model checkpoint to: {model_fname}')
         torch.save(self.net.state_dict(), model_fname)
+        if self.save_best:
+            model_fname = os.path.join(self.model_path, f'{self.log_fname}_best.pth')
 
         if self.latents is not None:
             model_fname = os.path.join(self.model_path, f'{self.log_fname}_latents.pth')
