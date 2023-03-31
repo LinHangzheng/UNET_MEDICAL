@@ -17,29 +17,22 @@ RGB_PALLET = np.array([
     [255, 255, 255, 255]
 ])/255
 
-def compute_acu(pre, labels, num_classes, only_total=False):
+# @background:None if include the background
+#             int if ignore the background and take the input background
+#             as the background value 
+def compute_acu(pre, labels, num_classes, background=None):
     x = pre
     if len(x.shape) == 2:
         x = torch.argmax(x,dim=1)
     y = labels.contiguous().view(-1)
-    total = x.shape[0]
-    
-    total_correct = torch.where(x==y)[0].shape[0]
-    auc_total = 100.*total_correct/total
-    if only_total:
-        return auc_total
-    
-    ret = []
-    for c in range(num_classes):
-        TP = torch.where((x==y) & (y==c))[0].shape[0]
-        TN = torch.where((x!=c) & (y!=c))[0].shape[0]
-        auc = 100. * (TP+TN)/total 
-        ret.append(auc)    
-    
-    
-    ret.append(auc_total)
-    ret = torch.Tensor(ret)
-    return ret
+    if background is None:
+        total = torch.where(y!=-1)[0].shape[0]
+        total_correct = torch.where((x==y) & (x!=-1))[0].shape[0]
+    else:
+        total = torch.where((y!=-1) & (y!=background))[0].shape[0]
+        total_correct = torch.where((x==y) & (y!=-1) & (y!=background))[0].shape[0]
+    auc_total = 100.*total_correct/(total+1e-5)
+    return torch.tensor(auc_total), total, total_correct
 
 def compute_auc(pre, labels, num_classes, average=None, thresholds=None, device=None):
     y = labels.view(-1)

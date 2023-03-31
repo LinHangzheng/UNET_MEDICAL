@@ -43,6 +43,7 @@ eval_input:
     plot_roc: False
     plot_entire_idx: 76
     plot_entire_pace: 224 
+    true_label: True
 
 model:
     classes_num: 11

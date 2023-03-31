@@ -44,10 +44,11 @@ class Validator(object):
         self.plot_roc = params["eval_input"]["plot_roc"]
         self.image_shape = params["train_input"]["image_shape"]
         self.plot_entire_pace = params["eval_input"]["plot_entire_pace"]
+        self.true_label = params["eval_input"]["true_label"]
         self.device = device
         self.net = net
         self.set_dataset()
-
+        
     def set_dataset(self):
         self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.val_data_loader = self.DatasetProcessor.create_dataloader(
@@ -77,7 +78,7 @@ class Validator(object):
         val_dict['DICE'] = compute_dice(preds.softmax(dim=1), labels,self.num_class)
         preds = rearrange(preds, 'b c h w -> (b h w) c')
         val_dict['AUC'] = [compute_auc(preds, labels, self.num_class,thresholds=self.threshold, device=self.device)]
-        val_dict['ACU'] = compute_acu(preds,labels,self.num_class,True)
+        val_dict['ACU'],_,_ = compute_acu(preds,labels,self.num_class,None)
         val_dict['AUC'] = torch.stack(val_dict['AUC'])
         val_dict['AUC'] = torch.sum(val_dict['AUC'],axis=0)
         
@@ -85,20 +86,22 @@ class Validator(object):
         for i in range(self.num_class):
             val_dict[f'AUC_{i+1}'] = val_dict['AUC'][i]
         val_dict['AUC'] = torch.mean(val_dict['AUC'])
-        acu = []
         time_list = []
         if self.valid_only:
             if self.plot_entire_idx is not None:
+                TP = 0
+                total = 0
                 for i in range(self.plot_entire_idx):
-                    IR, label = self.val_data_loader.dataset.get_entire_image(i)
+                    IR, label = self.val_data_loader.dataset.get_entire_image(i,self.true_label)
                     start = time.time()
                     preds_IR = plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace,num_class=self.num_class)
                     end = time.time()
                     time_list.append(end-start)
                     preds_IR = rearrange(preds_IR, 'h w -> (h w)')
-                    
-                    acu.append(compute_acu(preds_IR, label,self.num_class,True))
-                print(f"entire acu: {np.mean(acu)}")
+                    _, total_n, TP_n = compute_acu(preds_IR, label,self.num_class,background=0)
+                    total += total_n
+                    TP += TP_n
+                print(f"entire acu: {100.*TP/total}")
                 print(f"entire time: {np.mean(time_list)}")
             print(f"enter valid only: AUC={val_dict['AUC']}")
             if self.plot_roc:

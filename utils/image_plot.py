@@ -54,15 +54,21 @@ def plot_pred(n_start, num_class, images, labels, preds, save_path):
     return 
 
 def plot_entire(IR, label, idx, image_size, net, save_path, plot_entire_pace, num_class=11):
+    # creat arrays for color plot
     labels_RGB = torch.zeros([label.shape[0],label.shape[1],3],dtype=torch.uint8)
     preds_RGB = torch.zeros([label.shape[0],label.shape[1],3],dtype=torch.uint8)
     preds_mask = torch.zeros([num_class, IR.shape[1],IR.shape[2]],dtype=torch.float32)
     IR = torch.unsqueeze(IR,0)
     IR = IR.type(torch.float32)
+    
+    # assign color
     for i in range(num_class):
         labels_RGB[torch.where(label==i)] = RGB_PALLET[i]
+    
+    # plot label
     label = Image.fromarray(np.array(labels_RGB))
     label.save(os.path.join(save_path,f"label_entire_{idx}.jpg"))
+   
     for i in range(IR.shape[2]//plot_entire_pace+1):
         h = i*plot_entire_pace
         if h+image_size>IR.shape[2]:
@@ -80,6 +86,6 @@ def plot_entire(IR, label, idx, image_size, net, save_path, plot_entire_pace, nu
         preds_RGB[torch.where(preds_mask==i)] = RGB_PALLET[i]
     IR = Image.fromarray(np.array(preds_RGB))
     IR.save(os.path.join(save_path,f"preds_entire_{idx}.jpg"))
-    return  
+    return  preds_mask
 
     

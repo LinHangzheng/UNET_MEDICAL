@@ -76,7 +76,6 @@ class Trainer(object):
         self.valid_only = params["runconfig"]["valid_only"]
         self.epochs = params["runconfig"]["epochs"]
         self.steps_per_epoch = params["runconfig"]["steps_per_epoch"]
-        self.save_best = params["runconfig"]["save_best"]
         self.save_checkpoints_epoch = params["runconfig"]["save_checkpoints_epoch"]
         self.model_path = params["runconfig"]["model_path"]
         self.valid_every = params["runconfig"]["valid_every"]
