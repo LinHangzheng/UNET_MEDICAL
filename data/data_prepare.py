@@ -6,6 +6,7 @@ import numpy as np
 from glob import glob
 from PIL import Image as im
 from tqdm import tqdm
+np.random.seed(42)
 
 RGB_PALLET = np.array([
     [35, 101, 173],
