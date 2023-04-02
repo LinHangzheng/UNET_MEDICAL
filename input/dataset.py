@@ -30,7 +30,8 @@ class IRDataset(VisionDataset):
         self.IR_channel_level = IR_channel_level
         self.IR = sorted(glob(os.path.join(self.root,split,'IR/*.npy')))
         self.label = sorted(glob(os.path.join(self.root,split,'label/*.npy')))
-        self.true_label = sorted(glob(os.path.join(self.root,split,'true_label/*.npy')))
+        if split != 'train':
+            self.true_label = sorted(glob(os.path.join(self.root,'val_large','true_label/*.npy')))
         self.channel_map = [9, 6, 2, 8, 3, 1, 7, 5, 0, 4]
     
     def get_entire_image(self, idx, true_label = False):
