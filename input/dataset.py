@@ -30,16 +30,20 @@ class IRDataset(VisionDataset):
         self.IR_channel_level = IR_channel_level
         self.IR = sorted(glob(os.path.join(self.root,split,'IR/*.npy')))
         self.label = sorted(glob(os.path.join(self.root,split,'label/*.npy')))
+        
+        # get the entire validation images
         if split != 'train':
-            self.true_label = sorted(glob(os.path.join(self.root,'val_large','true_label/*.npy')))
+            self.entire_IR = sorted(glob(os.path.join(self.root,'val_large', 'IR/*.npy')))
+            self.entire_label = sorted(glob(os.path.join(self.root,'val_large', 'label/*.npy')))
+            self.entire_true_label = sorted(glob(os.path.join(self.root, 'val_large', 'true_label/*.npy')))
         self.channel_map = [9, 6, 2, 8, 3, 1, 7, 5, 0, 4]
     
     def get_entire_image(self, idx, true_label = False):
-        IR = torch.from_numpy(np.load(self.IR[idx])[self.channel_map[:self.IR_channel_level],:,:])
+        IR = torch.from_numpy(np.load(self.entire_IR[idx])[self.channel_map[:self.IR_channel_level],:,:])
         if true_label:
-            label = torch.from_numpy(np.load(self.true_label[idx]))
+            label = torch.from_numpy(np.load(self.entire_true_label[idx]))
         else:
-            label = torch.from_numpy(np.load(self.label[idx]))
+            label = torch.from_numpy(np.load(self.entire_label[idx]))
         return IR, label
     
     def __len__(self):
