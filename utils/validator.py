@@ -23,7 +23,7 @@ import torch
 import os
 import shutil
 from input import IRDatasetProcessor
-from .metric import compute_acu, compute_auc, plot_roc, compute_dice
+from .metric import remove_background, compute_acu, compute_auc, plot_roc, compute_dice
 from .image_plot import plot_pred, plot_entire
 from .loss import CombinedLoss
 from einops import rearrange
@@ -48,13 +48,18 @@ class Validator(object):
         self.device = device
         self.net = net
         self.set_dataset()
+        self.create_plot_path()
         
     def set_dataset(self):
         self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.val_data_loader = self.DatasetProcessor.create_dataloader(
                                     is_training=False)
 
-
+    def create_plot_path(self):
+        if os.path.exists(self.plot_path):
+            shutil.rmtree(self.plot_path)
+        os.mkdir(self.plot_path)
+        
     def validate(self, epoch):
         """Geometric validation; sample surface points."""
         val_dict = {}
@@ -63,60 +68,104 @@ class Validator(object):
         self.net.eval() 
         preds_total = []
         labels_total = []
-        if os.path.exists(self.plot_path):
-            shutil.rmtree(self.plot_path)
-        os.mkdir(self.plot_path)
+        
         for n_iter, data in enumerate(self.val_data_loader):
             images = data[0].to(self.device)
             labels = data[1].to(self.device)
             with torch.no_grad():
                 preds = self.net(images)
+                
+            # plot the prediction if validate only
             if self.valid_only: 
-                plot_pred(n_iter*self.batch_size,self.num_class,images,labels,preds,self.plot_path)
+                plot_pred(n_iter*self.batch_size,
+                          self.num_class,
+                          images,
+                          labels,
+                          preds,
+                          self.plot_path)
+            
             preds_total.append(preds)
             labels_total.append(labels)
             total += images.shape[0]
         preds = torch.cat(preds_total,dim=0)
         labels = torch.cat(labels_total,dim=0)
-        val_dict['DICE'] = compute_dice(preds.softmax(dim=1), labels,self.num_class)
-        preds = rearrange(preds, 'b c h w -> (b h w) c')
-        val_dict['AUC'] = [compute_auc(preds, labels, self.num_class,thresholds=self.threshold, device=self.device)]
-        val_dict['ACU'],_,_ = compute_acu(preds,labels,self.num_class,None)
-        val_dict['AUC'] = torch.stack(val_dict['AUC'])
-        val_dict['AUC'] = torch.sum(val_dict['AUC'],axis=0)
         
+        # Compute Dice
+        val_dict['DICE'] = compute_dice(preds.softmax(dim=1), labels,self.num_class)
+        
+        # Rearrange preds and labels for AUC and ACU calculation
+        preds = rearrange(preds, 'b c h w -> (b h w) c')
+        labels = rearrange(labels, 'b h w -> (b h w)')
+        
+        # Compute AUC and ACU
+        val_dict['AUC'] = compute_auc(preds, 
+                                      labels, 
+                                      self.num_class,
+                                      thresholds=self.threshold, 
+                                      device=self.device)
+        
+        preds = torch.argmax(preds,dim=1)
+        val_dict['ACU'] = compute_acu(preds,labels)
         
         for i in range(self.num_class):
             val_dict[f'AUC_{i+1}'] = val_dict['AUC'][i]
+        val_dict['AUC_without_bg'] = torch.mean(val_dict['AUC'][1:])
         val_dict['AUC'] = torch.mean(val_dict['AUC'])
-        time_list = []
+        
+        
         if self.valid_only:
-            if self.plot_entire_idx is not None:
-                TP = 0
-                total = 0
-                
-                for i in range(self.plot_entire_idx):
-                    IR, label = self.val_data_loader.dataset.get_entire_image(i,self.true_label)
-                    start = time.time()
-                    preds_IR = plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace,num_class=self.num_class)
-                    end = time.time()
-                    time_list.append(end-start)
-                    preds_IR = rearrange(preds_IR, 'h w -> (h w)')
-                    _, total_n, TP_n = compute_acu(preds_IR, label,self.num_class,background=0)
-                    total += total_n
-                    TP += TP_n
-                print(f"entire acu: {100.*TP/total}")
-                print(f"entire time: {np.mean(time_list)}")
-            print(f"enter valid only: AUC={val_dict['AUC']}")
-            if self.plot_roc:
-                plot_roc(preds,labels,self.num_class,os.path.join(self.plot_path,"ROC_figure.jpg"))
-            with open(os.path.join(self.plot_path,'result.txt'),'w') as f:
-                for i in range(self.num_class):
-                    auc = val_dict[f'AUC_{i+1}']
-                    f.write(f"{auc}\n")
-                f.write(f"{val_dict['AUC']}")
-                f.write("\n\n")
-                f.write(f"{val_dict['DICE']}")
+            self.run_valid_only(val_dict)
         return val_dict
 
-    
+    def run_valid_only(self,val_dict):
+        time_list = []
+        if self.plot_entire_idx is not None:
+            TP = 0
+            total = 0
+            preds = []
+            labels = []
+            for i in range(self.plot_entire_idx):
+                IR, label = self.val_data_loader.dataset.get_entire_image(i,self.true_label)
+                start = time.time()
+                preds_IR = plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace,num_class=self.num_class)
+                end = time.time()
+                time_list.append(end-start)
+                preds_IR = rearrange(preds_IR, 'c h w -> h w c')
+                preds_IR, label = remove_background(preds_IR,label,background=0)
+                preds.append(preds_IR)
+                labels.append(label)
+            preds = torch.cat(preds, dim=0)
+            labels = torch.cat(labels, dim=0)
+            
+            # preds: N C
+            # labels: N
+            AUC = compute_auc(  preds, 
+                                labels, 
+                                self.num_class,
+                                thresholds=self.threshold, 
+                                device=self.device)
+            
+            preds = torch.argmax(preds,dim=1)
+            ACU = compute_acu(preds,labels)
+            
+            print(f"entire time: {np.mean(time_list)}")
+            print(f"entire AUC: {AUC}")
+            print(f"entire AUC mean: {torch.mean(AUC[1:])}")
+            print(f"entire ACU: {ACU}")
+        
+        # plot roc curve
+        if self.plot_roc:
+            plot_roc(preds,labels,self.num_class,os.path.join(self.plot_path,"ROC_figure.jpg"))
+        
+        # write the metric into the result.txt
+        with open(os.path.join(self.plot_path,'result.txt'),'w') as f:
+            for i in range(self.num_class):
+                auc = val_dict[f'AUC_{i+1}']
+                f.write(f"{auc}\n")
+            f.write(f"{val_dict['AUC']}")
+            f.write("\n\n")
+            f.write(f"{val_dict['DICE']}")
+            if self.plot_entire_idx is not None:
+                f.write(f"entire AUC: {torch.mean(AUC[1:])}\n")
+                f.write(f"entire ACU: {ACU}\n")
+

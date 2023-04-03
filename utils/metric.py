@@ -17,27 +17,55 @@ RGB_PALLET = np.array([
     [255, 255, 255, 255]
 ])/255
 
-# @background:None if include the background
-#             int if ignore the background and take the input background
-#             as the background value 
-def compute_acu(pre, labels, num_classes, background=None):
-    x = pre
-    if len(x.shape) == 2:
-        x = torch.argmax(x,dim=1)
-    y = labels.contiguous().view(-1)
-    if background is None:
-        total = torch.where(y!=-1)[0].shape[0]
-        total_correct = torch.where((x==y) & (x!=-1))[0].shape[0]
-    else:
-        total = torch.where((y!=-1) & (y!=background))[0].shape[0]
-        total_correct = torch.where((x==y) & (y!=-1) & (y!=background))[0].shape[0]
-    auc_total = 100.*total_correct/(total+1e-5)
-    return torch.tensor(auc_total), total, total_correct
 
-def compute_auc(pre, labels, num_classes, average=None, thresholds=None, device=None):
-    y = labels.view(-1)
-    mc_auroc = MulticlassAUROC(num_classes=num_classes, average=average, thresholds=thresholds).to(device)
-    return mc_auroc(pre, y)
+def remove_background(pred, labels, background):
+    ''' 
+    remove the -1 and background from both predictions and labels
+    Args:
+        pred: [N,...] prediction (N would be any shape)
+        labels: [N] labels (N would be any shape)
+        background: the background index
+        
+    Returns:
+        pred: the new prediction without -1 and background on labels
+        labels: the new labels without -1 and background
+    '''
+    pos = torch.where((labels!=-1) & (labels!=background))
+    pred = pred[pos]
+    labels = labels[pos]
+    return pred, labels
+
+def compute_acu(pred, labels):
+    ''' 
+    Calculate accuracy 
+    Args:
+        pred: [(B*H*W)] 1D prediction
+        labels: [(B*H*W)] 1D labels
+        
+    Returns: 
+        acu value: would be total_correct/total
+    '''
+    total_correct = torch.where(pred==labels)[0].shape[0]
+    total = labels.shape[0]
+    acu_total = 100.*total_correct/(total+1e-5)
+    return torch.tensor(acu_total)\
+
+def compute_auc(pred, labels, num_classes, average=None, thresholds=None, device=None):
+    ''' 
+    Calculate AUC (Area Under the Curve) 
+    Args:
+        pred: [(B*H*W), C] 2D prediction
+        labels: [(B*H*W)] 1D labels
+        
+    Returns:
+        AUC value
+    '''
+    mc_auroc = MulticlassAUROC(
+                num_classes=num_classes, 
+                average=average, 
+                thresholds=thresholds
+                ).to(device)
+    return mc_auroc(pred, labels)
 
 def compute_dice(pred, label , num_classes, epsilon=1e-6):
     """
