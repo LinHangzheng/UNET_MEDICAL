@@ -98,6 +98,36 @@ def compute_dice(pred, label , num_classes, epsilon=1e-6):
 
     return total_dice_metric / num_classes
 
+def compute_dice_2D(preds, labels):
+    """
+    Compute the Dice metric for multi-class segmentation between label and pred.
+
+    Args:
+        pred: predicted tensor with shape [N, C]
+        label: ground truth tensor with shape [N]
+        epsilon: a small constant to avoid division by zero
+
+    Returns:
+        Dice metric for multi-class segmentation
+    """
+    assert preds.shape[0] == labels.shape[0], "Mismatch in the number of samples"
+    
+    N, C = preds.shape
+    dice_scores = torch.zeros(C) 
+    one_hot_labels = torch.eye(C)[labels.to(torch.long)]
+    for c in range(C):
+        pred_c = preds[:, c]
+        label_c = one_hot_labels[:, c]
+        
+        intersection = torch.sum(pred_c * label_c)
+        union = torch.sum(pred_c) + torch.sum(label_c)
+        
+        if union == 0:
+            dice_scores[c] = 1.0
+        else:
+            dice_scores[c] = 2 * intersection / union
+    
+    return dice_scores
 
 def plot_roc(pre, labels, num_classes, save_path, thresholds=None):
     y = labels.view(-1)

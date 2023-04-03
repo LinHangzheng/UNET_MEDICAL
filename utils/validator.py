@@ -23,7 +23,7 @@ import torch
 import os
 import shutil
 from input import IRDatasetProcessor
-from .metric import remove_background, compute_acu, compute_auc, plot_roc, compute_dice
+from .metric import remove_background, compute_acu, compute_auc, plot_roc, compute_dice, compute_dice_2D
 from .image_plot import plot_pred, plot_entire
 from .loss import CombinedLoss
 from einops import rearrange
@@ -139,6 +139,7 @@ class Validator(object):
             
             # preds: N C
             # labels: N
+            DICE = compute_dice_2D(preds.softmax(dim=1), labels)
             AUC = compute_auc(  preds, 
                                 labels, 
                                 self.num_class,
@@ -152,7 +153,7 @@ class Validator(object):
             print(f"entire AUC: {AUC}")
             print(f"entire AUC mean: {torch.mean(AUC[1:])}")
             print(f"entire ACU: {ACU}")
-        
+            print(f"entire DICE: {torch.mean(DICE[1:])}")
         # plot roc curve
         if self.plot_roc:
             plot_roc(preds,labels,self.num_class,os.path.join(self.plot_path,"ROC_figure.jpg"))
