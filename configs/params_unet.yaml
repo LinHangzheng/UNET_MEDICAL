@@ -38,7 +38,7 @@ train_input:
 
 eval_input:
     plot_path: "./UENT_9"
-    batch_size: 40
+    batch_size: 32
     threshold: null
     plot_roc: False
     plot_entire_idx: 10
@@ -65,7 +65,7 @@ optimizer:
 runconfig:
     logs: '/raid/projects/hangzheng/checkpoints/UNet/channel_9'
     model_type: "UNet" #UNet GeneratorUNet
-    pretrained: '/raid/projects/hangzheng/checkpoints/UNet/channel_9/20230402-224208.pth'
+    pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: False
     epochs: 1000
@@ -77,7 +77,7 @@ runconfig:
     multireplica: False
     mode: 'train'
     valid: True
-    valid_only: True
+    valid_only: False
     valid_every: 1
     model_path: "/raid/projects/hangzheng/checkpoints/UNet/channel_9"
     save_as_new: False

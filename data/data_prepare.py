@@ -138,7 +138,7 @@ if __name__ == "__main__":
     test_folder = os.path.join(root, 'val')
     
     plot = True
-    IR_files = sorted(glob('BR1003_Cores/Data/*'))
+    IR_files = sorted(glob('/raid/projects/hangzheng/BR1003_Cores/Data/*'))
     
     train_test_split = 0.98
     create_folder(train_folder)

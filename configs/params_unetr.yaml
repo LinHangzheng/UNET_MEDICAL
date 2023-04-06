@@ -37,8 +37,8 @@ train_input:
 eval_input:
     plot_path: "UNETR_9"
     threshold: null
-    batch_size: 40
-    plot_entire_idx: 10
+    batch_size: 32
+    plot_entire_idx: 2
     plot_roc: False
     plot_entire_pace: 224
     true_label: True
@@ -80,7 +80,7 @@ runconfig:
     valid: True
     valid_only: False
     valid_every: 1
-    model_path: "checkpoints/UNETR/channel_9"
+    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_9"
     save_as_new: False
     world_size: 2
     duplicate_act_worker_data: True
