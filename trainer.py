@@ -423,8 +423,6 @@ class Trainer(object):
         
         log.info(f'Saving model checkpoint to: {model_fname}')
         torch.save(self.net.state_dict(), model_fname)
-        if self.save_best:
-            model_fname = os.path.join(self.model_path, f'{self.log_fname}_best.pth')
 
         if self.latents is not None:
             model_fname = os.path.join(self.model_path, f'{self.log_fname}_latents.pth')

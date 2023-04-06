@@ -29,7 +29,7 @@ train_input:
     IR_channel_level: 9 # up to 17
     noise_variance: 0
     augment_data: True
-    batch_size: 32
+    batch_size: 2
     num_workers: 0
     drop_last: False
     prefetch_factor: 4
@@ -37,7 +37,7 @@ train_input:
 eval_input:
     plot_path: "UNETR_9"
     threshold: null
-    batch_size: 10
+    batch_size: 2
     plot_entire_idx: 10
     plot_roc: False
     plot_entire_pace: 224
@@ -78,7 +78,7 @@ runconfig:
     mode: 'train'
     eval_steps: False
     valid: True
-    valid_only: True
+    valid_only: False
     valid_every: 1
     model_path: "checkpoints/UNETR/channel_9"
     save_as_new: False
