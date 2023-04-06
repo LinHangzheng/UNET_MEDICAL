@@ -136,7 +136,7 @@ class Trainer(object):
     def set_wandb(self):
         if self.rank ==0:
             wandb.init(group=self.wandb, 
-                       project="breast",
+                       project="breast_new",
                        entity="hangzheng", 
                        mode=None if self.wandb else "disabled" ) #,mode="disabled"
             wandb.config.update = self.params
@@ -423,8 +423,6 @@ class Trainer(object):
         
         log.info(f'Saving model checkpoint to: {model_fname}')
         torch.save(self.net.state_dict(), model_fname)
-        if self.save_best:
-            model_fname = os.path.join(self.model_path, f'{self.log_fname}_best.pth')
 
         if self.latents is not None:
             model_fname = os.path.join(self.model_path, f'{self.log_fname}_latents.pth')

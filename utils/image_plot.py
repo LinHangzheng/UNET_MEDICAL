@@ -47,9 +47,9 @@ def plot_pred(n_start, num_class, images, labels, preds, save_path):
         label = Image.fromarray(np.array(labels_RGB[i]))
         pred = Image.fromarray(np.array(preds_RGB[i]))
         
-        image.save(os.path.join(save_path,f"input_{idx}.jpg"))
-        label.save(os.path.join(save_path,f"label_{idx}.jpg"))
-        pred.save(os.path.join(save_path,f"pred_{idx}.jpg"))
+        image.save(os.path.join(save_path,f"input_{idx}.png"))
+        label.save(os.path.join(save_path,f"label_{idx}.png"))
+        pred.save(os.path.join(save_path,f"pred_{idx}.png"))
         
     return 
 
@@ -70,7 +70,7 @@ def plot_entire(IR, label, idx, image_size, net, save_path, plot_entire_pace, nu
     
     # plot label
     label = Image.fromarray(np.array(labels_RGB))
-    label.save(os.path.join(save_path,f"label_entire_{idx}.jpg"))
+    label.save(os.path.join(save_path,f"label_entire_{idx}.png"))
    
     for i in range(IR.shape[2]//plot_entire_pace+1):
         h = i*plot_entire_pace
@@ -88,7 +88,7 @@ def plot_entire(IR, label, idx, image_size, net, save_path, plot_entire_pace, nu
     for i in range(num_class):
         preds_RGB[torch.where(preds_mask_post==i)] = RGB_PALLET[i]
     IR = Image.fromarray(np.array(preds_RGB))
-    IR.save(os.path.join(save_path,f"preds_entire_{idx}.jpg"))
+    IR.save(os.path.join(save_path,f"preds_entire_{idx}.png"))
     return  preds_mask
 
     
