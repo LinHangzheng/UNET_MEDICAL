@@ -22,10 +22,14 @@ RGB_PALLET = np.array([
     [255, 255, 255]
 ])
 
-def normolize(IR, max_val):
-    negative_pos = np.where(IR<0)
-    IR[negative_pos] = 0
-    IR = IR/max_val
+
+def normolize(IR, mask, std_band=7):
+# all the bands will be divided by the std_band (default=7) channel
+    ts = np.where(mask==1)
+    bg = np.where(mask==0)
+    for c in range(IR.shape[0]):
+        IR[c][ts] = IR[c][ts] / IR[std_band][ts]
+        IR[c][bg] = 0
     return IR
 
 
@@ -53,15 +57,16 @@ def save_val_patches(IR, label, true_label, img_size, folder, idx, name, plot):
             w_idx += 1
         h_idx += 1
             
-def save_data(IR_files, folder, max_IR, plot=True, train=True):
+def save_data(IR_files, folder, plot=True, train=True):
     for i, IR_file in enumerate(tqdm(IR_files)):
         name = IR_file.split('/')[-1].split('.')[0]
         data = scipy.io.loadmat(IR_file)
         IR = data['IRsub']
         label = data['6S_weakLabel']
+        mask = data['tissueMask']
         true_label = data['6S_trueLabel']
         IR = np.moveaxis(IR,2,0)
-        IR = normolize(IR, max_IR)
+        IR = normolize(IR, mask)
         data_save_plot(folder,
                        IR, 
                        label, 
@@ -97,11 +102,11 @@ def data_save_plot(save_folder,
         labels_RGB[np.where(Label_patch==k)] = RGB_PALLET[k]
         true_labels_RGB[np.where(true_label==k)] = RGB_PALLET[k]
     img = im.fromarray(IR_patch)
-    img.save(os.path.join(save_folder, 'IR', f'{IR_save_name}.jpeg'))
+    img.save(os.path.join(save_folder, 'IR', f'{IR_save_name}.png'))
     img = im.fromarray(labels_RGB)
-    img.save(os.path.join(save_folder, 'label', f'{Label_save_name}.jpeg'))
+    img.save(os.path.join(save_folder, 'label', f'{Label_save_name}.png'))
     img = im.fromarray(true_labels_RGB)
-    img.save(os.path.join(save_folder, 'true_label', f'true_{Label_save_name}.jpeg'))
+    img.save(os.path.join(save_folder, 'true_label', f'true_{Label_save_name}.png'))
        
         
 def create_folder(path):
@@ -120,16 +125,11 @@ def prepare_data(large_IR_files,
                        plot=True):
 
     np.random.shuffle(large_IR_files)
-    max_IR = 0
-    for i, IR_file in enumerate(tqdm(large_IR_files)):
-        IR = scipy.io.loadmat(IR_file)['IRsub']
-        max_IR = max(max_IR, np.max(IR))
-        
     patches_train = large_IR_files[:int(len(large_IR_files)*train_test_split)]
     patches_test = large_IR_files[int(len(large_IR_files)*train_test_split):]
     
-    save_data(patches_train, train_folder, max_IR, plot, True)
-    save_data(patches_test, test_folder, max_IR, plot, False)
+    save_data(patches_train, train_folder, plot, True)
+    save_data(patches_test, test_folder, plot, False)
 
 if __name__ == "__main__":
     root = '.'
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     plot = True
     IR_files = sorted(glob('BR1003_Cores/Data/*'))
     
-    train_test_split = 0.9
+    train_test_split = 0.98
     create_folder(train_folder)
     create_folder(test_large_folder)
     create_folder(test_folder)
