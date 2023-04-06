@@ -19,7 +19,7 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    data_dir: '/raid/projects/hangzheng/data' # Place to store data
+    data_dir: 'data' # Place to store data
     shuffle: True
     shuffle_seed: 1
     num_parallel_calls: 0   # 0 means AUTOTUNE
@@ -80,7 +80,7 @@ runconfig:
     valid: True
     valid_only: False
     valid_every: 1
-    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_9"
+    model_path: "checkpoints/UNETR/channel_9"
     save_as_new: False
     world_size: 2
     duplicate_act_worker_data: True
