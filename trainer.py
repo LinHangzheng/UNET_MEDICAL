@@ -136,7 +136,7 @@ class Trainer(object):
     def set_wandb(self):
         if self.rank ==0:
             wandb.init(group=self.wandb, 
-                       project="breast_new",
+                       project="breast_norm",
                        entity="hangzheng", 
                        mode=None if self.wandb else "disabled" ) #,mode="disabled"
             wandb.config.update = self.params

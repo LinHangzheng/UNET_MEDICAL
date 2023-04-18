@@ -32,7 +32,7 @@ train_input:
     noise_variance: 0
     augment_data: True
     batch_size: 32
-    num_workers: 64
+    num_workers: 32
     drop_last: False
     prefetch_factor: 4
 
@@ -65,7 +65,7 @@ optimizer:
 runconfig:
     logs: '/raid/projects/hangzheng/checkpoints/AttUNet/channel_3'
     model_type: "AttUNet" #UNet GeneratorUNet6
-    pretrained: '/raid/projects/hangzheng/checkpoints/AttUNet/channel_3/20230404-044745.pth'
+    pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: False
     epochs: 1000
@@ -77,7 +77,7 @@ runconfig:
     multireplica: False
     mode: 'train'
     valid: True
-    valid_only: True
+    valid_only: False
     valid_every: 1
     model_path: "/raid/projects/hangzheng/checkpoints/AttUNet/channel_3"
     save_as_new: False

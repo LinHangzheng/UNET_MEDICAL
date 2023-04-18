@@ -209,13 +209,10 @@ class UNETR_patch4(nn.Module):
                 DeConv2dBlock(embed_dim, 128),
             )
 
-        self.decoder12_upsampler = \
-            nn.ConvTranspose2d(embed_dim, 512, kernel_size=2, stride=2)
-
         self.decoder9_upsampler = \
             nn.Sequential(
-                Conv2dBlock(512, 256),
-                Conv2dBlock(256, 256),
+                Conv2dBlock(2*self.embed_dim, self.embed_dim),
+                Conv2dBlock(self.embed_dim, 256),
                 nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
             )
 
@@ -238,9 +235,9 @@ class UNETR_patch4(nn.Module):
                 Conv2dBlock(64, 64),
                 nn.Conv2d(64, output_dim, kernel_size=1),
             )
-        self.Att9 = Attention_block(F_g=256,F_l=256,F_int=128)
+        self.Att9 = Attention_block(F_g=self.embed_dim,F_l=self.embed_dim,F_int=self.embed_dim//2)
         self.Att6 = Attention_block(F_g=128,F_l=128,F_int=64)
-        self.Att3 = Attention_block(F_g=128,F_l=128,F_int=32)
+        self.Att3 = Attention_block(F_g=128,F_l=128,F_int=64)
         self.Att0 = Attention_block(F_g=64,F_l=64,F_int=32)
 
     def forward(self, x):
@@ -251,7 +248,7 @@ class UNETR_patch4(nn.Module):
         z6 = z6.transpose(-1, -2).view(-1, self.embed_dim, *self.patch_dim)
         z9 = z9.transpose(-1, -2).view(-1, self.embed_dim, *self.patch_dim)
         z12 = z12.transpose(-1, -2).view(-1, self.embed_dim, *self.patch_dim)
-
+        
         z9 = self.decoder9_upsampler(torch.cat([self.Att9(z12,z9), z12], dim=1))
         z6 = self.decoder6(z6)
         z6 = self.decoder6_upsampler(torch.cat([self.Att6(z9,z6), z9], dim=1))
