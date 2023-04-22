@@ -132,13 +132,13 @@ def prepare_data(large_IR_files,
     save_data(patches_test, test_folder, plot, False)
 
 if __name__ == "__main__":
-    root = '.'
+    root = '/raid/projects/hangzheng/data'
     train_folder = os.path.join(root, 'train')
     test_large_folder = os.path.join(root, 'val_large')
     test_folder = os.path.join(root, 'val')
     
     plot = True
-    IR_files = sorted(glob('BR1003_Cores/Data/*'))
+    IR_files = sorted(glob('/raid/projects/hangzheng/BR1003_Cores/Data/*'))
     
     train_test_split = 0.98
     create_folder(train_folder)

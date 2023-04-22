@@ -28,20 +28,20 @@ train_input:
     # IR_threshould: 0.18
     image_shape: [224,224] #128
     dataset: "IR_dataset"
-    IR_channel_level: 9 # up to 19
+    IR_channel_level: 3 # up to 19
     noise_variance: 0
     augment_data: True
     batch_size: 32
-    num_workers: 64
+    num_workers: 32
     drop_last: False
     prefetch_factor: 4
 
 eval_input:
-    plot_path: "./out_attunet_17_entire"
-    batch_size: 64
+    plot_path: "./ATTUNET_3"
+    batch_size: 40
     threshold: null
     plot_roc: False
-    plot_entire_idx: null
+    plot_entire_idx: 10
     plot_entire_pace: 224
     true_label: True
 
@@ -53,8 +53,8 @@ model:
     
 
 optimizer:
-    lr: 0.0001
-    loss_lambda: 2
+    lr: 0.001
+    loss_lambda: 5
     optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
     weight_decay_rate: 1e-4
     epsilon: 1e-6
@@ -63,8 +63,8 @@ optimizer:
 
 
 runconfig:
-    logs: '/raid/projects/hangzheng/checkpoints/AttUNet/channel_9'
-    model_type: "AttUNet" #UNet GeneratorUNet
+    logs: '/raid/projects/hangzheng/checkpoints/AttUNet/channel_3'
+    model_type: "AttUNet" #UNet GeneratorUNet6
     pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: False
@@ -79,7 +79,7 @@ runconfig:
     valid: True
     valid_only: False
     valid_every: 1
-    model_path: "/raid/projects/hangzheng/checkpoints/AttUNet/channel_9"
+    model_path: "/raid/projects/hangzheng/checkpoints/AttUNet/channel_3"
     save_as_new: False
-    world_size: 2
+    world_size: 1
     duplicate_act_worker_data: True

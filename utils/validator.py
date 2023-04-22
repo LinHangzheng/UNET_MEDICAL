@@ -163,10 +163,12 @@ class Validator(object):
             for i in range(self.num_class):
                 auc = val_dict[f'AUC_{i+1}']
                 f.write(f"{auc}\n")
-            f.write(f"{val_dict['AUC']}")
-            f.write("\n\n")
-            f.write(f"{val_dict['DICE']}")
+            f.write('\n')
+            f.write(f"AUC: {val_dict['AUC']}\n")
+            f.write(f"ACU: {val_dict['ACU']}\n")
+            f.write(f"DICE: {val_dict['DICE']}\n")
             if self.plot_entire_idx is not None:
                 f.write(f"entire AUC: {torch.mean(AUC[1:])}\n")
                 f.write(f"entire ACU: {ACU}\n")
+                f.write(f"entire DICE: {torch.mean(DICE[1:])}\n")
 
