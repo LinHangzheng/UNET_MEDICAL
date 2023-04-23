@@ -22,7 +22,7 @@
 import torch 
 import os
 import shutil
-from input import IRDatasetProcessor
+from input import IRDatasetProcessor, BraTsDatasetProcessor
 from .metric import remove_background, compute_acu, compute_auc, plot_roc, compute_dice, compute_dice_2D
 from .image_plot import plot_pred, plot_entire
 from .loss import CombinedLoss
@@ -37,6 +37,7 @@ class Validator(object):
         self.params = params
         self.num_class = params["train_input"]["num_classes"]
         self.valid_only = params["runconfig"]["valid_only"]
+        self.dataset_type = params["runconfig"]["dataset_type"]
         self.batch_size = params["eval_input"]["batch_size"]
         self.plot_path = params["eval_input"]["plot_path"]
         self.threshold = params["eval_input"]["threshold"]
@@ -51,7 +52,10 @@ class Validator(object):
         self.create_plot_path()
         
     def set_dataset(self):
-        self.DatasetProcessor = IRDatasetProcessor(self.params)
+        if self.dataset_type == "IR":
+            self.DatasetProcessor = IRDatasetProcessor(self.params)
+        elif self.dataset_type == "BraTs":
+            self.DatasetProcessor = BraTsDatasetProcessor(self.params)
         self.val_data_loader = self.DatasetProcessor.create_dataloader(
                                     is_training=False)
 

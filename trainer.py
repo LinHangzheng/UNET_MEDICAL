@@ -7,7 +7,7 @@ from model import *
 from torch.utils.tensorboard import SummaryWriter
 from torch.nn.parallel import DistributedDataParallel as DDP
 from utils import PerfTimer, Validator, compute_acu, CombinedLoss
-from input import IRDatasetProcessor
+from input import IRDatasetProcessor, BraTsDatasetProcessor
 import torch.distributed as dist
 from collections import OrderedDict
 import wandb
@@ -57,11 +57,11 @@ class Trainer(object):
         self.wandb = params["wandb"] 
         self.ip = params["ip"]
         self.data_dir = params["train_input"]["data_dir"]
-        self.IR_channel_level = params["train_input"]["IR_channel_level"]
+        self.input_dim = params["train_input"]["input_dim"]
         self.num_classes = params["train_input"]["num_classes"]
         self.image_shape = params["train_input"]["image_shape"]
         self.batch_size = params["train_input"]["batch_size"]
-
+        
         self.optimizer = params["optimizer"]["optimizer_type"]
         self.loss_lambda = params["optimizer"]["loss_lambda"]
         self.lr = params["optimizer"]["lr"]
@@ -69,6 +69,7 @@ class Trainer(object):
         self.epsilon = float(params["optimizer"]["epsilon"])
 
         self.model_type = params['runconfig']['model_type']
+        self.dataset_type = params['runconfig']['dataset_type']
         self.pretrained = params['runconfig']['pretrained']
         self.pretrained_from_DDP = params["runconfig"]["pretrained_from_DDP"]
         self.logs = params["runconfig"]["logs"]
@@ -163,7 +164,10 @@ class Trainer(object):
         if self.valid_only:
             return
         
-        self.DatasetProcessor = IRDatasetProcessor(self.params)
+        if self.dataset_type == 'BraTs':
+            self.DatasetProcessor = BraTsDatasetProcessor(self.params)
+        elif self.dataset_type == 'IR':
+            self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.train_data_loader = self.DatasetProcessor.create_dataloader(
                                     is_training=True,rank=self.rank)
         self.data_iterator = iter(self.train_data_loader)
@@ -176,20 +180,20 @@ class Trainer(object):
         initialization, or if you need a custom network initialization scheme.
         """
         if self.model_type == 'GeneratorUNet':
-            self.net = GeneratorUNet(in_channels=self.IR_channel_level, out_channels=self.num_classes)
+            self.net = GeneratorUNet(in_channels=self.input_dim, out_channels=self.num_classes)
         elif self.model_type == 'UNet':
-            self.net = UNet(in_ch=self.IR_channel_level, out_ch=self.num_classes)
+            self.net = UNet(in_ch=self.input_dim, out_ch=self.num_classes)
         elif self.model_type == 'Segmenter':
             model_cfg = self.params['model'].copy()
             model_cfg.update(self.params['vit'][model_cfg['backbone']])
             model_cfg['image_size'] = self.image_shape
-            model_cfg['channels'] = self.IR_channel_level
+            model_cfg['channels'] = self.input_dim
             self.net = create_segmenter(model_cfg)
-        elif self.model_type == 'UNETR':
+        elif self.model_type == 'UNETR_2D':
             params_model = self.params['model']
             if self.params['model']['patch_size'] == 16:
-                self.net = UNETR(img_shape=self.image_shape, 
-                                input_dim=self.IR_channel_level, 
+                self.net = UNETR_patch16(img_shape=self.image_shape, 
+                                input_dim=self.input_dim, 
                                 output_dim=self.num_classes, 
                                 embed_dim=params_model['embed_dim'], 
                                 patch_size=params_model['patch_size'], 
@@ -200,7 +204,7 @@ class Trainer(object):
                                 ext_layers=params_model['ext_layers'])
             elif self.params['model']['patch_size'] == 4:
                 self.net = UNETR_patch4(img_shape=self.image_shape, 
-                                input_dim=self.IR_channel_level, 
+                                input_dim=self.input_dim, 
                                 output_dim=self.num_classes, 
                                 embed_dim=params_model['embed_dim'], 
                                 patch_size=params_model['patch_size'], 
@@ -211,7 +215,19 @@ class Trainer(object):
                                 ext_layers=params_model['ext_layers'])
             elif self.params['model']['patch_size'] == 32:
                 self.net = UNETR_patch32(img_shape=self.image_shape, 
-                                input_dim=self.IR_channel_level, 
+                                input_dim=self.input_dim, 
+                                output_dim=self.num_classes, 
+                                embed_dim=params_model['embed_dim'], 
+                                patch_size=params_model['patch_size'], 
+                                num_heads=params_model['num_heads'], 
+                                dropout=params_model['dropout'],
+                                mlp_hidden=params_model['mlp_hidden'],
+                                num_layers=params_model['num_layers'],
+                                ext_layers=params_model['ext_layers'])
+        elif self.model_type == 'UNETR':
+            params_model = self.params['model']
+            self.net = UNETR(img_shape=self.image_shape, 
+                                input_dim=self.input_dim, 
                                 output_dim=self.num_classes, 
                                 embed_dim=params_model['embed_dim'], 
                                 patch_size=params_model['patch_size'], 
@@ -225,12 +241,12 @@ class Trainer(object):
             self.net = SwinUnet(img_size=self.image_shape[0],
                                 num_classes=self.num_classes,
                                 patch_size=params_model['patch_size'],
-                                in_chans=self.IR_channel_level,
+                                in_chans=self.input_dim,
                                 embed_dim=params_model['embed_dim'],
                                 window_size=params_model['window_size'],
                                 )
         elif self.model_type == 'AttUNet':
-            self.net = AttU_Net(img_ch=self.IR_channel_level, output_ch=self.num_classes)
+            self.net = AttU_Net(img_ch=self.input_dim, output_ch=self.num_classes)
         if self.pretrained:
             state_dict = torch.load(self.pretrained)
             if not self.pretrained_from_DDP:

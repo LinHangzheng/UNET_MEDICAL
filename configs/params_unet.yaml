@@ -28,7 +28,7 @@ train_input:
     # IR_threshould: 0.18
     image_shape: [224,224] #128
     dataset: "IR_dataset"
-    IR_channel_level: 3 # up to 19
+    input_dim: 3 # up to 19
     noise_variance: 0
     augment_data: True
     batch_size: 32
@@ -65,6 +65,7 @@ optimizer:
 runconfig:
     logs: '/raid/projects/hangzheng/checkpoints/UNet/channel_3'
     model_type: "UNet" #UNet GeneratorUNet
+    dataset_type: "IR"
     pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: False
