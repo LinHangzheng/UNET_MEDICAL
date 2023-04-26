@@ -22,7 +22,7 @@
 import torch 
 import os
 import shutil
-from input import IRDatasetProcessor, BraTsDatasetProcessor
+from input import IRDatasetProcessor
 from .metric import remove_background, compute_acu, compute_auc, plot_roc, compute_dice, compute_dice_2D
 from .image_plot import plot_pred, plot_entire
 from .loss import CombinedLoss
@@ -52,10 +52,7 @@ class Validator(object):
         self.create_plot_path()
         
     def set_dataset(self):
-        if self.dataset_type == "IR":
-            self.DatasetProcessor = IRDatasetProcessor(self.params)
-        elif self.dataset_type == "BraTs":
-            self.DatasetProcessor = BraTsDatasetProcessor(self.params)
+        self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.val_data_loader = self.DatasetProcessor.create_dataloader(
                                     is_training=False)
 
@@ -128,16 +125,18 @@ class Validator(object):
             total = 0
             preds = []
             labels = []
-            for i in range(self.plot_entire_idx):
-                IR, label = self.val_data_loader.dataset.get_entire_image(i,self.true_label)
-                start = time.time()
-                preds_IR = plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace,num_class=self.num_class)
-                end = time.time()
-                time_list.append(end-start)
-                preds_IR = rearrange(preds_IR, 'c h w -> h w c')
-                preds_IR, label = remove_background(preds_IR,label,background=0)
-                preds.append(preds_IR)
-                labels.append(label)
+            for data in self.val_data_loader:
+                IR, label = data[0], data[1]
+                for i in range(IR.shape[0]):
+                    start = time.time()
+                    preds_IR = plot_entire(IR, label, i+total, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace,num_class=self.num_class)
+                    end = time.time()
+                    time_list.append(end-start)
+                    preds_IR = rearrange(preds_IR, 'c h w -> h w c')
+                    preds_IR, label = remove_background(preds_IR,label,background=0)
+                    preds.append(preds_IR)
+                    labels.append(label)
+                total += IR.shape[0]
             preds = torch.cat(preds, dim=0)
             labels = torch.cat(labels, dim=0)
             

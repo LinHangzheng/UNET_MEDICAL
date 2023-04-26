@@ -29,7 +29,7 @@ class CombinedLoss(nn.Module):
         """
         total_soft_dice_loss = 0.
 
-        for i in range(num_classes):
+        for i in range(1,num_classes):
             # create binary masks for each class
             target_class = (target == i).float()
             pred_class = pred[:, i, :, :]
@@ -49,4 +49,8 @@ class CombinedLoss(nn.Module):
 
     def cross_entropy_loss(self, pred, target):
         loss = nn.CrossEntropyLoss()
+        n_class = pred.shape[1]
+        idx = torch.where(target<=n_class)
+        target = target[idx]
+        pred = pred[idx]
         return loss(pred,target)

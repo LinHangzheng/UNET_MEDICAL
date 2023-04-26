@@ -7,7 +7,7 @@ from model import *
 from torch.utils.tensorboard import SummaryWriter
 from torch.nn.parallel import DistributedDataParallel as DDP
 from utils import PerfTimer, Validator, compute_acu, CombinedLoss
-from input import IRDatasetProcessor, BraTsDatasetProcessor
+from input import IRDatasetProcessor
 import torch.distributed as dist
 from collections import OrderedDict
 import wandb
@@ -164,10 +164,7 @@ class Trainer(object):
         if self.valid_only:
             return
         
-        if self.dataset_type == 'BraTs':
-            self.DatasetProcessor = BraTsDatasetProcessor(self.params)
-        elif self.dataset_type == 'IR':
-            self.DatasetProcessor = IRDatasetProcessor(self.params)
+        self.DatasetProcessor = IRDatasetProcessor(self.params)
         self.train_data_loader = self.DatasetProcessor.create_dataloader(
                                     is_training=True,rank=self.rank)
         self.data_iterator = iter(self.train_data_loader)
