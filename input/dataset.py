@@ -32,13 +32,13 @@ class IRDataset(VisionDataset):
         self.label = sorted(glob(os.path.join(self.root,split,'CL/*.npy')))
         
         # get the entire validation images
-        self.channel_map = [9, 6, 2, 8, 3, 1, 5, 0, 4]
+        self.channel_map = [9, 6, 2, 8, 3, 1, 7, 5, 0, 4]
     
     def __len__(self):
         if self.split == 'train':
             return 12000000
         else:       
-            return len(self.IR)
+            return len(self.IR)*4
         #return len(self.IR)
 
     def __getitem__(self, idx:int):
