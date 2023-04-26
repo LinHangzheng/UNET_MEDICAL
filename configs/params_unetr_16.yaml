@@ -1,0 +1,87 @@
+# Copyright 2020 Cerebras Systems.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Params for FC MNIST model
+description: "FC-MNIST base model params"
+
+train_input: 
+    shuffle: True
+    shuffle_buffer_size : 10000
+    augment_data: True
+    data_dir: '/raid/projects/hangzheng/data' # Place to store data
+    shuffle: True
+    shuffle_seed: 2
+    num_parallel_calls: 0   # 0 means AUTOTUNE
+    num_classes: 7
+    image_shape: [224,224] #128
+    dataset: "IR_dataset"
+    input_dim: 3 # up to 17
+    noise_variance: 0
+    augment_data: True
+    batch_size: 32
+    num_workers: 32
+    drop_last: False
+    prefetch_factor: 4
+
+eval_input:
+    plot_path: "UNETR_3"
+    threshold: null
+    batch_size: 32
+    plot_entire_idx: 2
+    plot_roc: False
+    plot_entire_pace: 224
+    true_label: True
+
+model:
+    embed_dim: 768
+    patch_size: 16
+    num_heads: 24
+    dropout: 0.1
+    mlp_hidden: 2048
+    num_layers: 20
+    ext_layers: [5,10,15,20] #[3, 6, 9, 12]
+
+optimizer:
+    lr: 0.001
+    loss_lambda: 5
+    optimizer_type: 'adamw' # {'sgd', 'momentum', 'adam', 'adamw'}
+    weight_decay_rate: 1e-4
+    epsilon: 1e-6
+    max_gradient_norm: 1.0
+
+
+runconfig:
+    model_type: "UNETR_2D"
+    dataset_type: "IR"
+    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_3'
+    pretrained: False
+    pretrained_from_DDP: True
+    find_unused_parameters: True
+    epochs: 1000
+    steps_per_epoch: 100
+    save_summary_epoch: 1
+    save_checkpoints_epoch: 1
+    keep_checkpoint_max: 2
+    model_dir: 'model_dir'
+    cs_ip:
+    multireplica: False
+    mode: 'train'
+    eval_steps: False
+    valid: True
+    valid_only: False
+    valid_every: 1
+    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_3"
+    save_as_new: False
+    world_size: 2
+    duplicate_act_worker_data: True
