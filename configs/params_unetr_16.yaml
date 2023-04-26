@@ -30,7 +30,7 @@ train_input:
     noise_variance: 0
     augment_data: True
     batch_size: 2
-    num_workers: 2
+    num_workers: 0
     drop_last: False
     prefetch_factor: 4
 

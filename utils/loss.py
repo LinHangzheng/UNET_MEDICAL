@@ -52,5 +52,6 @@ class CombinedLoss(nn.Module):
         n_class = pred.shape[1]
         idx = torch.where(target<=n_class)
         target = target[idx]
+        pred = torch.moveaxis(pred,1,-1)
         pred = pred[idx]
         return loss(pred,target)
