@@ -33,10 +33,10 @@ class BraTsDataset(VisionDataset):
         self.crop_sz  = crop_sz
 
     def __len__(self):
-        return len(self.fileName)
+        return 10000000
 
     def __getitem__(self, index:int):
-
+        index = index % len(self.fileName)
         fileName_indv         = self.fileName[index]
         
         ###============= Data Loading ===================### 

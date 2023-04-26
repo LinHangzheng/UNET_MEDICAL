@@ -50,7 +50,7 @@ model:
     dropout: 0.1
     mlp_hidden: 2048
     num_layers: 16
-    ext_layers: [4,8,16,32] #[3, 6, 9, 12]
+    ext_layers: [4,8,12,16] #[3, 6, 9, 12]
 
 optimizer:
     lr: 0.001
