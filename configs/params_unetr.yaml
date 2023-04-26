@@ -19,18 +19,18 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    data_dir: '/raid/projects/hangzheng/data' # Place to store data
+    data_dir: 'data' # Place to store data
     shuffle: True
     shuffle_seed: 2
     num_parallel_calls: 0   # 0 means AUTOTUNE
-    num_classes: 7
-    image_shape: [224,224] #128
+    num_classes: 3
+    image_shape: [160,192,128] #128
     dataset: "IR_dataset"
-    IR_channel_level: 3 # up to 17
+    input_dim: 4 # up to 17
     noise_variance: 0
     augment_data: True
-    batch_size: 32
-    num_workers: 32
+    batch_size: 2
+    num_workers: 0
     drop_last: False
     prefetch_factor: 4
 
@@ -44,13 +44,13 @@ eval_input:
     true_label: True
 
 model:
-    embed_dim: 768
+    embed_dim: 256
     patch_size: 16
-    num_heads: 24
+    num_heads: 16
     dropout: 0.1
-    mlp_hidden: 2048
-    num_layers: 20
-    ext_layers: [5,10,15,20] #[3, 6, 9, 12]
+    mlp_hidden: 256
+    num_layers: 4
+    ext_layers: [1,2,3,4] #[3, 6, 9, 12]
 
 optimizer:
     lr: 0.001
@@ -63,7 +63,8 @@ optimizer:
 
 runconfig:
     model_type: "UNETR"
-    logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_3'
+    dataset_type: "BraTs"
+    logs: 'checkpoints/UNETR/channel_3'
     pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: True
@@ -80,7 +81,7 @@ runconfig:
     valid: True
     valid_only: False
     valid_every: 1
-    model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_3"
+    model_path: "UNETR/channel_3"
     save_as_new: False
-    world_size: 2
+    world_size: 1
     duplicate_act_worker_data: True

@@ -26,7 +26,7 @@ train_input:
     num_classes: 7
     image_shape: [224,224] #128
     dataset: "IR_dataset"
-    IR_channel_level: 3 # up to 17
+    input_dim: 3 # up to 17
     noise_variance: 0
     augment_data: True
     batch_size: 16
@@ -62,7 +62,8 @@ optimizer:
 
 
 runconfig:
-    model_type: "UNETR"
+    model_type: "UNETR_2D"
+    dataset_type: "IR"
     logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_3_patch4'
     pretrained: '/raid/projects/hangzheng/checkpoints/UNETR/channel_3_patch4/20230418-174340.pth'
     pretrained_from_DDP: True

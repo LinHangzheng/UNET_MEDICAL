@@ -17,7 +17,7 @@ class IRDataset(VisionDataset):
         self, 
         root, 
         split='train',
-        IR_channel_level = 3,
+        input_dim = 3,
         transforms=None,
         transform=None,
         target_transform=None
@@ -27,7 +27,7 @@ class IRDataset(VisionDataset):
         )
         self.split = split
         self.root = root
-        self.IR_channel_level = IR_channel_level
+        self.input_dim = input_dim
         self.IR = sorted(glob(os.path.join(self.root,split,'IR/*.npy')))
         self.label = sorted(glob(os.path.join(self.root,split,'label/*.npy')))
         
@@ -39,7 +39,7 @@ class IRDataset(VisionDataset):
         self.channel_map = [9, 6, 2, 8, 3, 1, 5, 0, 4]
     
     def get_entire_image(self, idx, true_label = False):
-        IR = torch.from_numpy(np.load(self.entire_IR[idx])[self.channel_map[:self.IR_channel_level],:,:])
+        IR = torch.from_numpy(np.load(self.entire_IR[idx])[self.channel_map[:self.input_dim],:,:])
         
         if true_label:
             label = torch.from_numpy(np.load(self.entire_true_label[idx]))
@@ -56,7 +56,7 @@ class IRDataset(VisionDataset):
 
     def __getitem__(self, idx:int):
         idx = idx%len(self.IR)
-        patch = torch.from_numpy(np.load(self.IR[idx])[self.channel_map[:self.IR_channel_level],:,:])
+        patch = torch.from_numpy(np.load(self.IR[idx])[self.channel_map[:self.input_dim],:,:])
         label = torch.from_numpy(np.load(self.label[idx]))
 
         if self.transforms is not None:
@@ -95,7 +95,7 @@ class IRDatasetProcessor(VisionDataset):
         self.num_workers = params["train_input"].get("num_workers", 0)
         self.drop_last = params["train_input"].get("drop_last", True)
         self.prefetch_factor = params["train_input"].get("prefetch_factor", 10)
-        self.IR_channel_level = params["train_input"]["IR_channel_level"]
+        self.input_dim = params["train_input"]["input_dim"]
         self.persistent_workers = params.get("persistent_workers", True)
         self.world_size = params["runconfig"]["world_size"]
         
@@ -112,7 +112,7 @@ class IRDatasetProcessor(VisionDataset):
         dataset = IRDataset(
             root=self.data_dir,
             split=split,
-            IR_channel_level=self.IR_channel_level,
+            input_dim=self.input_dim,
             transforms=self.transform_image_and_mask,
         )
         return dataset
