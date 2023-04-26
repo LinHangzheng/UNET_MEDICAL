@@ -25,7 +25,6 @@ if __name__ == "__main__":
     """Main program."""
     world_size = args["runconfig"]["world_size"]
     log.info(f'Parameters: \n{args}')
-
     mp.spawn(
         main,
         nprocs=world_size
