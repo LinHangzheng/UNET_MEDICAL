@@ -98,6 +98,9 @@ class Validator(object):
         preds = rearrange(preds, 'b c h w -> (b h w) c')
         labels = rearrange(labels, 'b h w -> (b h w)')
         
+        mask = torch.where(labels<self.num_class)
+        labels = labels[mask]
+        preds = preds[mask]
         # Compute AUC and ACU
         val_dict['AUC'] = compute_auc(preds, 
                                       labels, 
