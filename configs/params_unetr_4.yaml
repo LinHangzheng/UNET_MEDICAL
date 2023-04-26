@@ -35,7 +35,7 @@ train_input:
     prefetch_factor: 4
 
 eval_input:
-    plot_path: "./out_unetr_17_patch4"
+    plot_path: "./UNETR_patch4_3"
     threshold: null
     plot_roc: False
     plot_entire_idx: 2
@@ -64,7 +64,7 @@ optimizer:
 runconfig:
     model_type: "UNETR"
     logs: '/raid/projects/hangzheng/checkpoints/UNETR/channel_3_patch4'
-    pretrained: False
+    pretrained: '/raid/projects/hangzheng/checkpoints/UNETR/channel_3_patch4/20230418-174340.pth'
     pretrained_from_DDP: True
     find_unused_parameters: True
     epochs: 2000
@@ -78,9 +78,9 @@ runconfig:
     mode: 'train'
     eval_steps: 100
     valid: True
-    valid_only: False
+    valid_only: True
     valid_every: 1
     model_path: "/raid/projects/hangzheng/checkpoints/UNETR/channel_3_patch4"
     save_as_new: False
-    world_size: 2
+    world_size: 1
     duplicate_act_worker_data: True
