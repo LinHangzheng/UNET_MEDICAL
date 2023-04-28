@@ -32,7 +32,7 @@ class IRDataset(VisionDataset):
         self.label = sorted(glob(os.path.join(self.root,split,'CL/*.npy')))
         
         # get the entire validation images
-        self.channel_map = [5,9,2,8,4,7,1,3,6,0]
+        self.channel_map = [5,9,2,8,4,7,1,3,6]
     
     def __len__(self):
         if self.split == 'train':
@@ -43,7 +43,9 @@ class IRDataset(VisionDataset):
 
     def __getitem__(self, idx:int):
         idx = idx%len(self.IR)
-        patch = torch.from_numpy(np.load(self.IR[idx])[self.channel_map[:self.input_dim],:,:])
+        IR = torch.from_numpy(np.load(self.IR[idx]))
+        patch = IR[self.channel_map[:self.input_dim],:,:]
+        patch = patch/(IR[0]+1e-6)
         label = torch.from_numpy(np.load(self.label[idx]))
 
         if self.transforms is not None:
