@@ -72,7 +72,7 @@ class Embeddings(nn.Module):
     def forward(self, x):
         x = self.patch_embeddings(x)
         x = x.flatten(2)
-        x = x.transpose(-1, -2)
+        x = x.transpose(-1, -2).contiguous()
         embeddings = x + self.position_embeddings
         embeddings = self.dropout(embeddings)
         return embeddings
@@ -244,10 +244,10 @@ class UNETR_patch4(nn.Module):
 
         z = self.transformer(x)
         z0, z3, z6, z9, z12 = x, *z
-        z3 = z3.transpose(-1, -2).view(-1, self.embed_dim, *self.patch_dim)
-        z6 = z6.transpose(-1, -2).view(-1, self.embed_dim, *self.patch_dim)
-        z9 = z9.transpose(-1, -2).view(-1, self.embed_dim, *self.patch_dim)
-        z12 = z12.transpose(-1, -2).view(-1, self.embed_dim, *self.patch_dim)
+        z3 = z3.transpose(-1, -2).contiguous().view(-1, self.embed_dim, *self.patch_dim)
+        z6 = z6.transpose(-1, -2).contiguous().view(-1, self.embed_dim, *self.patch_dim)
+        z9 = z9.transpose(-1, -2).contiguous().view(-1, self.embed_dim, *self.patch_dim)
+        z12 = z12.transpose(-1, -2).contiguous().view(-1, self.embed_dim, *self.patch_dim)
         
         z9 = self.decoder9_upsampler(torch.cat([self.Att9(z12,z9), z12], dim=1))
         z6 = self.decoder6(z6)
