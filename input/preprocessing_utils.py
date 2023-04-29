@@ -14,7 +14,6 @@
 
 import torch
 from torchvision import transforms
-from skimage.util import random_noise
 
 def normalize_tensor_transform(img, normalize_data_method):
     """
