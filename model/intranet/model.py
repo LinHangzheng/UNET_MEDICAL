@@ -165,7 +165,7 @@ class Transformer(nn.Module):
         merge_count = 0
         for depth, layer_block in enumerate(self.layer):
             b, h, w, c = hidden_states.shape
-            hidden_states = rearrange(hidden_states, 'b h w c -> b (h w) c')
+            hidden_states = rearrange(hidden_states, 'b h w c -> b (h w) c').contiguous()
             hidden_states, _ = layer_block(hidden_states)
             hidden_states = hidden_states.view(b, h, w, -1)
             if depth + 1 in self.extract_layers:
@@ -291,11 +291,11 @@ class INTRANET(nn.Module):
     def forward(self, x):
         z = self.transformer(x)
         z0, z1, z2, z3, z4, z5 = x, *z
-        z1 = rearrange(z1, 'b h w c -> b c h w')
-        z2 = rearrange(z2, 'b h w c -> b c h w')
-        z3 = rearrange(z3, 'b h w c -> b c h w')
-        z4 = rearrange(z4, 'b h w c -> b c h w')
-        z5 = rearrange(z5, 'b h w c -> b c h w')
+        z1 = rearrange(z1, 'b h w c -> b c h w').contiguous()
+        z2 = rearrange(z2, 'b h w c -> b c h w').contiguous()
+        z3 = rearrange(z3, 'b h w c -> b c h w').contiguous()
+        z4 = rearrange(z4, 'b h w c -> b c h w').contiguous()
+        z5 = rearrange(z5, 'b h w c -> b c h w').contiguous()
 
         z5 = self.decoder5_upsampler(z5)
         z4 = self.decoder4(z4)
