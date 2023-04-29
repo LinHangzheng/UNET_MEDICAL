@@ -37,17 +37,17 @@ def normalize_tensor_transform(img, normalize_data_method):
     return img
 
 
-def adjust_brightness_transform(img, p, delta):
+def adjust_brightness_transform(img, p, var):
     """
     Function equivalent to `tf.image.adjust_brightness`, 
     but executed probabilistically.
     :params img: Input torch.Tensor of any shape
     :params p: Integer representing probability
-    :params delta: Float value representing the value 
-        by which img Tensor is increased or decreased.
+    :params var: variance of gaussian noise
     """
     if (torch.rand(1) > p).item():
-        img = torch.tensor(random_noise(img, mode='gaussian', mean=0, var=0.005, clip=True))
+        noice = (var**0.5)*torch.randn(img.shape[1:])
+        img += noice
     return img
 
 
