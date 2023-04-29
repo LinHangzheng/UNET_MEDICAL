@@ -14,7 +14,7 @@
 
 import torch
 from torchvision import transforms
-
+from skimage.util import random_noise
 
 def normalize_tensor_transform(img, normalize_data_method):
     """
@@ -47,7 +47,7 @@ def adjust_brightness_transform(img, p, delta):
         by which img Tensor is increased or decreased.
     """
     if (torch.rand(1) > p).item():
-        img = torch.add(img, delta)
+        img = torch.tensor(random_noise(img, mode='gaussian', mean=0, var=0.005, clip=True))
     return img
 
 
