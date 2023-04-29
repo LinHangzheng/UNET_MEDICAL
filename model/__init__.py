@@ -8,3 +8,4 @@ from .unetr_2D_patch16.model import UNETR_patch16
 from .unetr_2D_patch32.model import UNETR_patch32
 from .att_unet.model import AttU_Net
 from .unetr.model import UNETR
+from .intranet.model import INTRANET

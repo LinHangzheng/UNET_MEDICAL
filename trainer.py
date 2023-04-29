@@ -176,6 +176,7 @@ class Trainer(object):
         Override this function if using a custom network, that does not use the default args based
         initialization, or if you need a custom network initialization scheme.
         """
+        params_model = self.params['model']
         if self.model_type == 'GeneratorUNet':
             self.net = GeneratorUNet(in_channels=self.input_dim, out_channels=self.num_classes)
         elif self.model_type == 'UNet':
@@ -187,7 +188,6 @@ class Trainer(object):
             model_cfg['channels'] = self.input_dim
             self.net = create_segmenter(model_cfg)
         elif self.model_type == 'UNETR_2D':
-            params_model = self.params['model']
             if self.params['model']['patch_size'] == 16:
                 self.net = UNETR_patch16(img_shape=self.image_shape, 
                                 input_dim=self.input_dim, 
@@ -222,7 +222,6 @@ class Trainer(object):
                                 num_layers=params_model['num_layers'],
                                 ext_layers=params_model['ext_layers'])
         elif self.model_type == 'UNETR':
-            params_model = self.params['model']
             self.net = UNETR(img_shape=self.image_shape, 
                                 input_dim=self.input_dim, 
                                 output_dim=self.num_classes, 
@@ -234,7 +233,6 @@ class Trainer(object):
                                 num_layers=params_model['num_layers'],
                                 ext_layers=params_model['ext_layers'])
         elif self.model_type == 'SwinUNet':
-            params_model = self.params['model']
             self.net = SwinUnet(img_size=self.image_shape[0],
                                 num_classes=self.num_classes,
                                 patch_size=params_model['patch_size'],
@@ -244,6 +242,17 @@ class Trainer(object):
                                 )
         elif self.model_type == 'AttUNet':
             self.net = AttU_Net(img_ch=self.input_dim, output_ch=self.num_classes)
+        elif self.model_type == 'INTRANET':
+            self.net = INTRANET(img_shape=self.image_shape, 
+                            input_dim=self.input_dim, 
+                            output_dim=self.num_classes, 
+                            embed_dim=params_model['embed_dim'], 
+                            patch_size=params_model['patch_size'], 
+                            num_heads=params_model['num_heads'], 
+                            dropout=params_model['dropout'],
+                            mlp_hidden=params_model['mlp_hidden'],
+                            num_layers=params_model['num_layers'],
+                            ext_layers=params_model['ext_layers'])
         if self.pretrained:
             state_dict = torch.load(self.pretrained)
             if not self.pretrained_from_DDP:
@@ -350,9 +359,6 @@ class Trainer(object):
             preds = self.net(images)
             del images
             self.timer.check('training')
-            # preds = rearrange(preds, 'b c h w -> (b h w) c')
-            # labels = rearrange(labels, 'b h w -> (b h w)')
-            # self.timer.check('rearrange')
             loss, dice, ce = self.loss(preds,labels)
             del preds, labels
             self.timer.check('get loss')
