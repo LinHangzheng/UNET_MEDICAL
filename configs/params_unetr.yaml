@@ -19,18 +19,18 @@ train_input:
     shuffle: True
     shuffle_buffer_size : 10000
     augment_data: True
-    data_dir: '/raid/projects/hangzheng/data/brats/' # Place to store data
+    data_dir: 'data/Jintea' # Place to store data
     shuffle: True
     shuffle_seed: 2
     num_parallel_calls: 0   # 0 means AUTOTUNE
-    num_classes: 5
-    image_shape: [160,192,128] #128
+    num_classes: 4
+    image_shape: [224,224] #128
     dataset: "IR_dataset"
     input_dim: 4 # up to 17
     noise_variance: 0
     augment_data: True
-    batch_size: 16
-    num_workers: 32
+    batch_size: 2
+    num_workers: 0
     drop_last: False
     prefetch_factor: 4
 
@@ -48,9 +48,9 @@ model:
     patch_size: 16
     num_heads: 16
     dropout: 0.1
-    mlp_hidden: 2048
-    num_layers: 16
-    ext_layers: [4,8,12,16] #[3, 6, 9, 12]
+    mlp_hidden: 512
+    num_layers: 4
+    ext_layers: [1,2,3,4] #[3, 6, 9, 12]
 
 optimizer:
     lr: 0.001
@@ -63,8 +63,8 @@ optimizer:
 
 runconfig:
     model_type: "UNETR"
-    dataset_type: "BraTs"
-    logs: '/raid/projects/hangzheng/checkpoints/BRATS/UNETR'
+    dataset_type: "IR"
+    logs: 'checkpoints/BRATS/UNETR'
     pretrained: False
     pretrained_from_DDP: True
     find_unused_parameters: True
@@ -81,7 +81,7 @@ runconfig:
     valid: True
     valid_only: False
     valid_every: 1
-    model_path: "/raid/projects/hangzheng/BRATS/UNETR"
+    model_path: "Jintea/UNETR"
     save_as_new: False
-    world_size: 2
+    world_size: 1
     duplicate_act_worker_data: True
