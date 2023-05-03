@@ -363,7 +363,8 @@ class Trainer(object):
             del preds, labels
             self.timer.check('get loss')
             # Update logs
-            self.log_dict['cross_entropy_loss'] += ce.item()
+            if self.loss_lambda > 0:
+                self.log_dict['cross_entropy_loss'] += ce.item()
             self.log_dict['total_loss'] += loss.item()*batch_size
             self.log_dict['training_dice'] += dice*batch_size
             self.log_dict['total_iter_count'] += batch_size
