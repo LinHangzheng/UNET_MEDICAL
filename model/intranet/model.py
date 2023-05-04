@@ -218,13 +218,11 @@ class INTRANET(nn.Module):
         self.decoder1 = \
             nn.Sequential(
                 Conv2dBlock(embed_dim, embed_dim, 3),
-                Conv2dBlock(embed_dim, embed_dim, 3),
                 Conv2dBlock(embed_dim, embed_dim, 3)
             )
 
         self.decoder2 = \
             nn.Sequential(
-                Conv2dBlock(embed_dim*2, embed_dim*2),
                 Conv2dBlock(embed_dim*2, embed_dim*2),
                 Conv2dBlock(embed_dim*2, embed_dim*2)
             )
@@ -232,20 +230,17 @@ class INTRANET(nn.Module):
         self.decoder3 = \
             nn.Sequential(
                 Conv2dBlock(embed_dim*4, embed_dim*4),
-                Conv2dBlock(embed_dim*4, embed_dim*4),
                 Conv2dBlock(embed_dim*4, embed_dim*4)
             )
 
         self.decoder4 = \
             nn.Sequential(
                 Conv2dBlock(embed_dim*8, embed_dim*8),
-                Conv2dBlock(embed_dim*8, embed_dim*8),
                 Conv2dBlock(embed_dim*8, embed_dim*8)
             )
         
         self.decoder5 = \
             nn.Sequential(
-                Conv2dBlock(embed_dim*16, embed_dim*16),
                 Conv2dBlock(embed_dim*16, embed_dim*16),
                 Conv2dBlock(embed_dim*16, embed_dim*16)
             )
@@ -257,14 +252,12 @@ class INTRANET(nn.Module):
             nn.Sequential(
                 Conv2dBlock(embed_dim*16, embed_dim*8),
                 Conv2dBlock(embed_dim*8, embed_dim*8),
-                Conv2dBlock(embed_dim*8, embed_dim*8),
                 nn.ConvTranspose2d(embed_dim*8, embed_dim*4, kernel_size=2, stride=2)
             )
 
         self.decoder3_upsampler = \
             nn.Sequential(
                 Conv2dBlock(embed_dim*8, embed_dim*4),
-                Conv2dBlock(embed_dim*4, embed_dim*4),
                 Conv2dBlock(embed_dim*4, embed_dim*4),
                 nn.ConvTranspose2d(embed_dim*4, embed_dim*2, kernel_size=2, stride=2)
             )
@@ -273,7 +266,6 @@ class INTRANET(nn.Module):
             nn.Sequential(
                 Conv2dBlock(embed_dim*4, embed_dim*2),
                 Conv2dBlock(embed_dim*2, embed_dim*2),
-                Conv2dBlock(embed_dim*2, embed_dim*2),
                 nn.ConvTranspose2d(embed_dim*2, embed_dim, kernel_size=2, stride=2)
             )
 
@@ -281,14 +273,12 @@ class INTRANET(nn.Module):
             nn.Sequential(
                 Conv2dBlock(embed_dim*2, embed_dim),
                 Conv2dBlock(embed_dim, embed_dim),
-                Conv2dBlock(embed_dim, embed_dim),
                 nn.ConvTranspose2d(embed_dim, embed_dim, kernel_size=2, stride=2)
             )
 
         self.decoder0_header = \
             nn.Sequential(
                 Conv2dBlock(embed_dim*2, embed_dim),
-                Conv2dBlock(embed_dim, embed_dim),
                 Conv2dBlock(embed_dim, 32),
                 nn.Conv2d(32, output_dim, kernel_size=1),
             )
