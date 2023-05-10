@@ -138,7 +138,7 @@ class Validator(object):
                 labels = torch.flatten(labels)
                 labels.append(label)
             preds = torch.cat(preds, dim=0)
-            labels = torch.stack(labels, dim=0)
+            labels = torch.cat(labels, dim=0)
             
             # preds: N C
             # labels: N
