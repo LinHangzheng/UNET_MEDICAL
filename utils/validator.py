@@ -124,22 +124,18 @@ class Validator(object):
     def run_valid_only(self,val_dict):
         time_list = []
         if self.plot_entire_idx is not None:
-            TP = 0
-            total = 0
             preds = []
             labels = []
             for i in range(self.plot_entire_idx):
                 IR, label = self.val_data_loader.dataset.get_entire(i)
-                for i in range(IR.shape[0]):
-                    start = time.time()
-                    preds_IR = plot_entire(IR, label, i+total, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace,num_class=self.num_class)
-                    end = time.time()
-                    time_list.append(end-start)
-                    preds_IR = rearrange(preds_IR, 'c h w -> h w c')
-                    preds_IR, label = remove_background(preds_IR,label,background=0)
-                    preds.append(preds_IR)
-                    labels.append(label)
-                total += IR.shape[0]
+                start = time.time()
+                preds_IR = plot_entire(IR, label, i, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace,num_class=self.num_class)
+                end = time.time()
+                time_list.append(end-start)
+                preds_IR = rearrange(preds_IR, 'c h w -> h w c')
+                preds_IR, label = remove_background(preds_IR,label,background=0)
+                preds.append(preds_IR)
+                labels.append(label)
             preds = torch.cat(preds, dim=0)
             labels = torch.cat(labels, dim=0)
             
