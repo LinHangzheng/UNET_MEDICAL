@@ -135,7 +135,7 @@ class Validator(object):
                 preds_IR = rearrange(preds_IR, 'c h w -> h w c')
                 preds_IR, label = remove_background(preds_IR,label,background=0)
                 preds.append(preds_IR)
-                labels = torch.flatten(labels)
+                label = torch.flatten(label)
                 labels.append(label)
             preds = torch.cat(preds, dim=0)
             labels = torch.cat(labels, dim=0)
