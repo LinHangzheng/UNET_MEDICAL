@@ -64,8 +64,9 @@ class IRDataset(VisionDataset):
     
     def get_entire(self,i):
         IR = torch.from_numpy(np.load(self.entire_IR[i]))
+        patch = IR[self.channel_map[:self.input_dim],:,:]
         label = torch.from_numpy(np.load(self.entire_label[i]))
-        return IR, label
+        return patch, label
         
         
 class IRDatasetProcessor(VisionDataset):
