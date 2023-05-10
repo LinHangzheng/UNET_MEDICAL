@@ -65,7 +65,7 @@ class IRDataset(VisionDataset):
     def get_entire(self,i):
         IR = torch.from_numpy(np.load(self.entire_IR[i]))
         label = torch.from_numpy(np.load(self.entire_label[i]))
-        yield IR, label
+        return IR, label
         
         
 class IRDatasetProcessor(VisionDataset):
