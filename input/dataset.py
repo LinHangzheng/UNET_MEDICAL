@@ -30,6 +30,8 @@ class IRDataset(VisionDataset):
         self.input_dim = input_dim
         self.IR = sorted(glob(os.path.join(self.root,split,'IR/*.npy')))
         self.label = sorted(glob(os.path.join(self.root,split,'CL/*.npy')))
+        self.entire_IR = sorted(glob(os.path.join(self.root,'val_large','IR/*.npy')))
+        self.entire_label = sorted(glob(os.path.join(self.root,'val_large','CL/*.npy')))
         
         # get the entire validation images
         self.channel_map = [5,9,2,8,4,7,1,3,6,0]
@@ -59,6 +61,13 @@ class IRDataset(VisionDataset):
         #     image.save(os.path.join('.',f"{self.split}_{idx}_{i}.png"))
         
         return patch, label
+    
+    def get_entire(self):
+        for i in range(len(self.entire_IR)):
+            IR = torch.from_numpy(np.load(self.entire_IR[i]))
+            label = torch.from_numpy(np.load(self.entire_label[i]))
+            yield IR, label
+        
         
 class IRDatasetProcessor(VisionDataset):
     def __init__(self, params):

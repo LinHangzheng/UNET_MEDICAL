@@ -128,8 +128,8 @@ class Validator(object):
             total = 0
             preds = []
             labels = []
-            for data in self.val_data_loader:
-                IR, label = data[0], data[1]
+            for i in range(self.plot_entire_idx):
+                IR, label = self.val_data_loader.get_entire(i)
                 for i in range(IR.shape[0]):
                     start = time.time()
                     preds_IR = plot_entire(IR, label, i+total, self.image_shape[0], self.net, self.plot_path, self.plot_entire_pace,num_class=self.num_class)
