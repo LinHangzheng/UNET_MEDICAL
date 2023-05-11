@@ -48,7 +48,7 @@ class IRDataset(VisionDataset):
         IR = torch.from_numpy(np.load(self.IR[idx]))
         patch = IR[self.channel_map[:self.input_dim],:,:]
         label = torch.from_numpy(np.load(self.label[idx]))
-
+    
         if self.transforms is not None:
             patch, label = self.transforms(patch, label)
         

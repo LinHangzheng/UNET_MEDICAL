@@ -350,6 +350,7 @@ class Trainer(object):
             self.timer.check('inner_iter start')
             images = data[0].to(self.rank)
             labels = data[1].to(self.rank)
+            
             self.timer.check('send to device')
             # Prepare for inference
             batch_size = images.shape[0]
@@ -358,6 +359,9 @@ class Trainer(object):
             # Calculate loss
             preds = self.net(images)
             del images
+            pos = torch.where((labels!=-1) & (labels<self.num_classes))
+            preds = preds[pos]
+            labels = preds[pos]
             self.timer.check('training')
             loss, dice, ce = self.loss(preds,labels)
             del preds, labels

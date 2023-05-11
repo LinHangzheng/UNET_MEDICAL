@@ -22,7 +22,7 @@ class CombinedLoss(nn.Module):
         Compute the Soft Dice Loss for multi-class segmentation between target and pred.
 
         Args:
-            target: ground truth tensor with shape [batch_size, num_classes, H, W]
+            target: ground truth tensor with shape [batch_size, H, W]
             pred: predicted tensor with shape [batch_size, num_classes, H, W]
             num_classes: number of classes in the segmentation task
             epsilon: a small constant to avoid division by zero

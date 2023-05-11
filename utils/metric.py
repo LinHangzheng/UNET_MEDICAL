@@ -18,7 +18,7 @@ RGB_PALLET = np.array([
 ])/255
 
 
-def remove_background(pred, labels, background):
+def remove_background(pred, labels, background, num_classes):
     ''' 
     remove the -1 and background from both predictions and labels
     Args:
@@ -30,7 +30,7 @@ def remove_background(pred, labels, background):
         pred: the new prediction without -1 and background on labels
         labels: the new labels without -1 and background
     '''
-    pos = torch.where((labels!=-1) & (labels!=background))
+    pos = torch.where((labels!=-1) & (labels!=background) & (labels<num_classes))
     pred = pred[pos]
     labels = labels[pos]
     return pred, labels

@@ -133,7 +133,7 @@ class Validator(object):
                 end = time.time()
                 time_list.append(end-start)
                 preds_IR = rearrange(preds_IR, 'c h w -> h w c')
-                preds_IR, label = remove_background(preds_IR,label,background=0)
+                preds_IR, label = remove_background(preds_IR,label,0, self.num_class)
                 preds.append(preds_IR)
                 label = torch.flatten(label)
                 labels.append(label)
