@@ -35,12 +35,12 @@ class CombinedLoss(nn.Module):
         for i in range(1,num_classes):
             # create binary masks for each class
             target_class = (target == i).float()
-            pred_class = pred[:, i, :, :]
+            pred_class = pred[:, i]
 
             # compute soft dice loss for each class
-            intersection = torch.sum(target_class * pred_class, dim=(1,2))
-            target_volume = torch.sum(target_class, dim=(1,2))
-            pred_volume = torch.sum(pred_class, dim=(1,2))
+            intersection = torch.sum(target_class * pred_class)
+            target_volume = torch.sum(target_class)
+            pred_volume = torch.sum(pred_class)
             union = target_volume + pred_volume + epsilon
             soft_dice = (2. * intersection + epsilon) / union
             soft_dice_loss = 1. - torch.mean(soft_dice)

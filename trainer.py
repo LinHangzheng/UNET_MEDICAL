@@ -12,7 +12,7 @@ import torch.distributed as dist
 from collections import OrderedDict
 import wandb
 from tqdm import tqdm
-# from einops import rearrange
+from einops import rearrange
 
 class Trainer(object):
     """
@@ -359,9 +359,11 @@ class Trainer(object):
             # Calculate loss
             preds = self.net(images)
             del images
+            preds = rearrange(preds, 'b c h w -> b h w c')
             pos = torch.where((labels!=-1) & (labels<self.num_classes))
+            
             preds = preds[pos]
-            labels = preds[pos]
+            labels = labels[pos]
             self.timer.check('training')
             loss, dice, ce = self.loss(preds,labels)
             del preds, labels

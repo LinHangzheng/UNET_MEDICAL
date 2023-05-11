@@ -6,7 +6,7 @@ from torchvision.datasets import VisionDataset
 import torch.distributed as dist
 import numpy as np
 from torch.utils.data.distributed import DistributedSampler
-# from PIL import Image
+from PIL import Image
 from .preprocessing_utils import (
     adjust_brightness_transform,
     rotation_90_transform,
@@ -53,12 +53,12 @@ class IRDataset(VisionDataset):
             patch, label = self.transforms(patch, label)
         
                 
-        # for i in range(len(self.channel_map)):
-        #     plot = np.array(patch[i,:,:])
-        #     plot = np.moveaxis(plot,0,-1)
-        #     plot = plot/np.max(plot)*255
-        #     image = Image.fromarray(plot).convert("L")
-        #     image.save(os.path.join('.',f"{self.split}_{idx}_{i}.png"))
+        for i in range(len(self.channel_map)):
+            plot = np.array(patch[i,:,:])
+            plot = np.moveaxis(plot,0,-1)
+            plot = plot/np.max(plot)*255
+            image = Image.fromarray(plot).convert("L")
+            image.save(os.path.join('.',f"{self.split}_{idx}_{i}.png"))
         
         return patch, label
     
@@ -175,7 +175,7 @@ class IRDatasetProcessor(VisionDataset):
                 n_rotations = n_rotations * 2
             h = torch.randint(high=image.shape[1]-self.image_shape[0]-1,size=(1,))
             w = torch.randint(high=image.shape[2]-self.image_shape[1]-1,size=(1,))
-            var = 0.005
+            var = 0.000001
             augment_transform_image = self.get_augment_transforms(
                 do_horizontal_flip=do_horizontal_flip,
                 n_rotations=n_rotations,
